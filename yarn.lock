@@ -6466,12 +6466,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"config@npm:^3.3.9":
-  version: 3.3.11
-  resolution: "config@npm:3.3.11"
+"config@npm:latest":
+  version: 3.3.12
+  resolution: "config@npm:3.3.12"
   dependencies:
     json5: ^2.2.3
-  checksum: 84d783978ca7bf74bc6347868b6db29b853f5eda66021a04d77a84027b8b8b9d2fb5744409de5a39a5d63d867c3ac5f4169407701fa48f380015065b2701b221
+  checksum: db1b7718ffb0a8dc99cac003f31f6af99562362b8b25f2c72104465983d471e683ea25866308886723179248113a584e6ec3f67811e25e3c2b070bee592dd94d
   languageName: node
   linkType: hard
 
@@ -9030,10 +9030,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"govuk-frontend@npm:4.8.0":
-  version: 4.8.0
-  resolution: "govuk-frontend@npm:4.8.0"
-  checksum: e255f924f399319e109347ec4993e0441fc5847a6a73ba44a465b1599c7d03e85c29212743b081ccd60e19224c6301143c77540b8e4bfe615fcb3e162b8663f4
+"govuk-frontend@npm:4.9.0":
+  version: 4.9.0
+  resolution: "govuk-frontend@npm:4.9.0"
+  checksum: f70cf65d91e00669b6b818e82b343df8dc40fef1ffdda02ad4394291bdb184aca3593e610f5399ee01b1c921a5226f13cd537606a7755a4e882864852fd2e18c
   languageName: node
   linkType: hard
 
@@ -13892,7 +13892,7 @@ __metadata:
     chai: ^4.3.7
     chai-as-promised: ^8.0.0
     codeceptjs: ^3.5.3
-    config: ^3.3.9
+    config: latest
     cookie-parser: ^1.4.6
     copy-webpack-plugin: 9.1.0
     css-loader: ^7.0.0
@@ -13905,7 +13905,7 @@ __metadata:
     express: ^4.18.2
     express-nunjucks: ^3.1.1
     glob: ^10.3.3
-    govuk-frontend: 4.8.0
+    govuk-frontend: 4.9.0
     helmet: ^7.0.0
     html-webpack-plugin: ^5.5.3
     husky: ^9.0.0
