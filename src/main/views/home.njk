@@ -10,7 +10,6 @@
 
   {{ govukServiceNavigation({
     serviceName: "HMCTS chatbot",
-    serviceUrl: "/",
     navigation: [
       {
         href: "/",
@@ -30,6 +29,7 @@
 {% endblock %}
 
 {% block content %}
+  <h1 class="govuk-heading-xl">Chat</h1>
 
   <div class="govuk-form-group">
     <input class="govuk-input" id="event-name" name="eventName" type="text">
