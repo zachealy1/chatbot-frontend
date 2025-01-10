@@ -29,12 +29,67 @@
 {% endblock %}
 
 {% block content %}
-  <h1 class="govuk-heading-xl">Chat</h1>
+  <!-- Chat Messages -->
+  <div class="govuk-width-container">
+    <div class="govuk-chat-box">
 
-  <div class="govuk-form-group">
-    <input class="govuk-input" id="event-name" name="eventName" type="text">
+      <!-- Chat Message from User -->
+      <div class="govuk-chat-profile">
+            <img src="/assets/images/user-profile.jpg" alt="User profile picture" class="govuk-chat-profile-picture">
+            <span class="govuk-chat-username">You</span>
+          </div>
+      <div class="govuk-chat-message govuk-chat-message--user">
+        <span class="govuk-visually-hidden">User:</span>
+        <p>What is my case status?</p>
+      </div>
+
+      <!-- Chat Message from Chatbot -->
+      <div class="govuk-chat-profile">
+            <img src="/assets/images/chatbot-profile.jpg" alt="Chatbot profile picture" class="govuk-chat-profile-picture">
+            <span class="govuk-chat-username">GOV.UK Chat (experimental)</span>
+          </div>
+      <div class="govuk-chat-message govuk-chat-message--bot">
+        <span class="govuk-visually-hidden">Chatbot:</span>
+        <p>Your case is currently under review. Please check back in 2-3 days.</p>
+      </div>
+
+      <!-- Chat Message from User -->
+      <div class="govuk-chat-profile">
+            <img src="/assets/images/user-profile.jpg" alt="User profile picture" class="govuk-chat-profile-picture">
+            <span class="govuk-chat-username">You</span>
+          </div>
+      <div class="govuk-chat-message govuk-chat-message--user">
+        <span class="govuk-visually-hidden">User:</span>
+        <p>Thank you!</p>
+      </div>
+
+      <!-- Chat Message from Chatbot -->
+      <div class="govuk-chat-profile">
+            <img src="/assets/images/chatbot-profile.jpg" alt="Chatbot profile picture" class="govuk-chat-profile-picture">
+            <span class="govuk-chat-username">GOV.UK Chat (experimental)</span>
+          </div>
+      <div class="govuk-chat-message govuk-chat-message--bot">
+        <span class="govuk-visually-hidden">Chatbot:</span>
+        <p>You're welcome! Let me know if you need further assistance.</p>
+      </div>
+    </div>
   </div>
-  <button type="submit" class="govuk-button" data-module="govuk-button">
-    Submit
-  </button>
+
+  <!-- Chat Input Section -->
+  <div class="custom-full-width-border">
+    <div class="govuk-width-container">
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <div class="govuk-form-group">
+            <input class="govuk-input" id="event-name" name="eventName" type="text" placeholder="Type your message">
+          </div>
+        </div>
+        <div class="govuk-grid-column-one-third">
+          <button type="submit" class="govuk-button" data-module="govuk-button" style="margin-top: 24px;">
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}

@@ -1,1 +1,56 @@
 @import 'govuk-frontend';
+
+.custom-full-width-border {
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  background-color: #ffffff;
+  border-top: 1px solid #b1b4b6;
+  padding: 16px 0;
+  margin-bottom: -67px;
+}
+
+.govuk-chat-box {
+  border-radius: 4px;
+}
+
+.govuk-chat-message {
+  margin-bottom: 16px;
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-family: "GDS Transport", arial, sans-serif;
+}
+
+.govuk-chat-username {
+  font-weight: bold;
+  font-size: 14px;
+  color: #0b0c0c;
+  font-family: "GDS Transport", arial, sans-serif;
+}
+
+
+.govuk-chat-message--user {
+  background-color: #85C1E9;
+  color: #0b0c0c;
+}
+
+.govuk-chat-message--bot {
+  background-color: #e0e0e0;
+  color: #0b0c0c;
+}
+
+.govuk-chat-profile {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.govuk-chat-profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+}
+
+

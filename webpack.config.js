@@ -25,6 +25,10 @@ module.exports = {
           from: govukMacrosPath,
           to: path.resolve(__dirname, 'src/main/views/govuk/macros'),
         },
+        {
+          from: path.resolve(__dirname, 'src/main/assets/images'), // Source folder for images
+          to: path.resolve(__dirname, 'src/main/public/assets/images'), // Emit to assets/images
+        },
       ],
     }),
   ],
@@ -38,6 +42,13 @@ module.exports = {
         use: 'ts-loader',
         exclude: /node_modules/,
       },
+      {
+        test: /\.(png|jpe?g|gif|svg)$/i, // Match image files
+        type: 'asset/resource', // Webpack 5 asset/resource handling
+        generator: {
+          filename: 'assets/images/[name][ext]', // Emit to assets/images/ folder
+        },
+      },
     ],
   },
   resolve: {
@@ -45,7 +56,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, 'src/main/public/'),
-    publicPath: '',
+    publicPath: '/', // Serve assets from the root URL
     filename,
   },
 };
