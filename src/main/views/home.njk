@@ -29,49 +29,28 @@
 {% endblock %}
 
 {% block content %}
-  <!-- Chat Messages -->
-  <div class="govuk-width-container">
+  <div class="govuk-width-container scrollable-div">
     <div class="govuk-chat-box">
 
-      <!-- Chat Message from User -->
-      <div class="govuk-chat-profile">
-            <img src="/assets/images/user-profile.jpg" alt="User profile picture" class="govuk-chat-profile-picture">
-            <span class="govuk-chat-username">You</span>
-          </div>
-      <div class="govuk-chat-message govuk-chat-message--user">
-        <span class="govuk-visually-hidden">User:</span>
-        <p>What is my case status?</p>
-      </div>
+      {% for i in range(1, 20) %}
+        <div class="govuk-chat-profile">
+          <img src="/assets/images/user-profile.jpg" alt="User profile picture" class="govuk-chat-profile-picture">
+          <span class="govuk-chat-username">You</span>
+        </div>
+        <div class="govuk-chat-message govuk-chat-message--user">
+          <span class="govuk-visually-hidden">User:</span>
+          <p>This is message {{ i }} from the user.</p>
+        </div>
 
-      <!-- Chat Message from Chatbot -->
-      <div class="govuk-chat-profile">
-            <img src="/assets/images/chatbot-profile.jpg" alt="Chatbot profile picture" class="govuk-chat-profile-picture">
-            <span class="govuk-chat-username">GOV.UK Chat (experimental)</span>
-          </div>
-      <div class="govuk-chat-message govuk-chat-message--bot">
-        <span class="govuk-visually-hidden">Chatbot:</span>
-        <p>Your case is currently under review. Please check back in 2-3 days.</p>
-      </div>
-
-      <!-- Chat Message from User -->
-      <div class="govuk-chat-profile">
-            <img src="/assets/images/user-profile.jpg" alt="User profile picture" class="govuk-chat-profile-picture">
-            <span class="govuk-chat-username">You</span>
-          </div>
-      <div class="govuk-chat-message govuk-chat-message--user">
-        <span class="govuk-visually-hidden">User:</span>
-        <p>Thank you!</p>
-      </div>
-
-      <!-- Chat Message from Chatbot -->
-      <div class="govuk-chat-profile">
-            <img src="/assets/images/chatbot-profile.jpg" alt="Chatbot profile picture" class="govuk-chat-profile-picture">
-            <span class="govuk-chat-username">GOV.UK Chat (experimental)</span>
-          </div>
-      <div class="govuk-chat-message govuk-chat-message--bot">
-        <span class="govuk-visually-hidden">Chatbot:</span>
-        <p>You're welcome! Let me know if you need further assistance.</p>
-      </div>
+        <div class="govuk-chat-profile">
+          <img src="/assets/images/chatbot-profile.jpg" alt="Chatbot profile picture" class="govuk-chat-profile-picture">
+          <span class="govuk-chat-username">GOV.UK Chat</span>
+        </div>
+        <div class="govuk-chat-message govuk-chat-message--bot">
+          <span class="govuk-visually-hidden">Chatbot:</span>
+          <p>This is response {{ i }} from the chatbot.</p>
+        </div>
+      {% endfor %}
     </div>
   </div>
 
@@ -93,3 +72,4 @@
     </div>
   </div>
 {% endblock %}
+
