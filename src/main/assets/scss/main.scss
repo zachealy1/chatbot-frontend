@@ -28,14 +28,13 @@
   font-family: "GDS Transport", arial, sans-serif;
 }
 
-
 .govuk-chat-message--user {
-  background-color: #85C1E9;
-  color: #0b0c0c;
+  background-color: #1d70b8;
+  color: #ffffff;
 }
 
 .govuk-chat-message--bot {
-  background-color: #e0e0e0;
+  background-color: #f3f2f1;
   color: #0b0c0c;
 }
 
@@ -58,4 +57,37 @@
   height: 400px;
 }
 
+.govuk-main-wrapper {
+  padding-top: 0;
+}
 
+.govuk-input {
+  flex: 1;
+  height: 40px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.custom-full-width-border .govuk-width-container {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 1rem !important;
+  box-sizing: border-box;
+}
+
+.custom-full-width-border .govuk-input {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.custom-full-width-border .govuk-button {
+  white-space: nowrap !important;
+}
+
+.govuk-button {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+}
