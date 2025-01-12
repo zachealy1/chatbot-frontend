@@ -6,6 +6,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const chatBox = document.getElementById("chat-box");
   const chatInput = document.getElementById("chat-input");
 
+  // Function to scroll to the bottom of the chat box
+  function scrollToBottom() {
+    chatBox.scrollTo(0, document.body.scrollHeight);
+    console.log("Scrolling to the bottom of the chat box");
+  }
+
   // Attach click event to send button
   sendButton.addEventListener("click", function () {
     console.log("Send button clicked");
@@ -57,9 +63,16 @@ document.addEventListener("DOMContentLoaded", function () {
       chatInput.value = "";
 
       // Scroll to the latest message
-      chatBox.scrollTop = chatBox.scrollHeight;
+      scrollToBottom();
     } else {
       console.log("No message entered");
     }
   });
+
+  // Ensure the chat box is scrolled to the bottom on page load
+  scrollToBottom();
+
+  // Optional: Auto-scroll when new messages are dynamically added by other sources
+  const observer = new MutationObserver(scrollToBottom);
+  observer.observe(chatBox, { childList: true });
 });
