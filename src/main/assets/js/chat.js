@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function to scroll to the bottom of the chat box
   function scrollToBottom() {
-    chatBox.scrollTo(0, document.body.scrollHeight);
+    chatBox.scrollTo(0, chatBox.scrollHeight);
     console.log("Scrolling to the bottom of the chat box");
   }
 
