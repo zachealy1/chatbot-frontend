@@ -32,8 +32,12 @@ module.exports = {
       ],
     }),
   ],
-  entry: path.resolve(sourcePath, 'index.ts'),
+  entry: {
+    main: path.resolve(sourcePath, 'index.ts'), // Main entry point
+    chat: path.resolve(sourcePath, 'chat.js'), // New entry point for chat script
+  },
   mode: devMode ? 'development' : 'production',
+  devtool: devMode ? 'inline-source-map' : false, // Avoid 'eval' in source maps
   module: {
     rules: [
       ...scss.rules,
@@ -57,6 +61,6 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'src/main/public/'),
     publicPath: '/', // Serve assets from the root URL
-    filename,
+    filename, // Dynamic filename based on entry point
   },
 };
