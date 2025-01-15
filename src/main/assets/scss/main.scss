@@ -6,7 +6,7 @@
   background-color: #ffffff;
   border-top: 1px solid #b1b4b6;
   padding: 16px 0;
-  margin-bottom: -70px;
+  margin-bottom: -30px;
 }
 
 .govuk-chat-box {
@@ -56,11 +56,7 @@
   overflow-y: scroll;
   scroll-behavior: auto;
   position: relative;
-  height: 400px;
-}
-
-.govuk-main-wrapper {
-  padding-top: 0;
+  height: 600px;
 }
 
 .govuk-input {
@@ -92,4 +88,17 @@
   align-items: center;
   justify-content: center;
   padding: 0 1rem;
+}
+
+.govuk-summary-card {
+  margin-top: 30px;
+}
+
+.govuk-main-wrapper {
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+.govuk-panel {
+  margin-top: 15px;
 }

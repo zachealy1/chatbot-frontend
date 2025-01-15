@@ -1,0 +1,37 @@
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+
+{% extends "template.njk" %}
+
+{% block header %}
+  {{ govukHeader({
+    classes: "govuk-header--full-width-border"
+  }) }}
+
+  {{ govukServiceNavigation({
+    serviceName: "HMCTS chatbot",
+    navigation: [
+      {
+        href: "/",
+        text: "Chat"
+      },
+      {
+        href: "/chat-history",
+        text: "Chat History"
+      },
+      {
+        href: "/contact-support",
+        text: "Contact Support",
+        active: true
+      }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+  {{ govukPanel({
+    titleText: "Contact Support Team",
+    html: "If you need assistance, please call us at <strong>0800 123 456</strong> or email <a href='mailto:support@example.com'>support@example.com</a>."
+  }) }}
+{% endblock %}

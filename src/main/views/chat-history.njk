@@ -1,0 +1,228 @@
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% extends "template.njk" %}
+
+{% block header %}
+  {{ govukHeader({
+    classes: "govuk-header--full-width-border"
+  }) }}
+
+  {{ govukServiceNavigation({
+    serviceName: "HMCTS chatbot",
+    navigation: [
+      {
+        href: "/",
+        text: "Chat"
+      },
+      {
+        href: "/chat-history",
+        text: "Chat History",
+        active: true
+      },
+      {
+        href: "/contact-support",
+        text: "Contact Support"
+      }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-width-container">
+    <div class="govuk-chat-box scrollable-div">
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: "Chat History"
+          },
+          actions: {
+            items: [
+              {
+                href: "/open-chat-history",
+                text: "Open",
+                visuallyHiddenText: "Open this chat history"
+              },
+              {
+                href: "/delete-chat-history",
+                text: "Delete",
+                visuallyHiddenText: "Delete this chat history"
+              }
+            ]
+          }
+        },
+        rows: [
+          {
+            key: {
+            text: "Date"
+          },
+            value: {
+            html: "12th January 2025"
+          }
+          },
+          {
+            key: {
+            text: "Summary"
+          },
+            value: {
+            html: "You asked about Express.js templates and routes."
+          }
+          },
+          {
+            key: {
+            text: "Agent Response"
+          },
+            value: {
+            html: "I provided steps to set up a new view."
+          }
+          }
+        ]
+      }) }}
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: "Chat History"
+          },
+          actions: {
+            items: [
+              {
+                href: "/open-chat-history",
+                text: "Open",
+                visuallyHiddenText: "Open this chat history"
+              },
+              {
+                href: "/delete-chat-history",
+                text: "Delete",
+                visuallyHiddenText: "Delete this chat history"
+              }
+            ]
+          }
+        },
+        rows: [
+          {
+            key: {
+            text: "Date"
+          },
+            value: {
+            html: "13th January 2025"
+          }
+          },
+          {
+            key: {
+            text: "Summary"
+          },
+            value: {
+            html: "You discussed Nunjucks templates and rendering views."
+          }
+          },
+          {
+            key: {
+            text: "Agent Response"
+          },
+            value: {
+            html: "I explained the process of configuring routes and templates."
+          }
+          }
+        ]
+      }) }}
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: "Chat History"
+          },
+          actions: {
+            items: [
+              {
+                href: "/open-chat-history",
+                text: "Open",
+                visuallyHiddenText: "Open this chat history"
+              },
+              {
+                href: "/delete-chat-history",
+                text: "Delete",
+                visuallyHiddenText: "Delete this chat history"
+              }
+            ]
+          }
+        },
+        rows: [
+          {
+            key: {
+            text: "Date"
+          },
+            value: {
+            html: "14th January 2025"
+          }
+          },
+          {
+            key: {
+            text: "Summary"
+          },
+            value: {
+            html: "You inquired about improving accessibility in chat history views."
+          }
+          },
+          {
+            key: {
+            text: "Agent Response"
+          },
+            value: {
+            html: "I suggested adding ARIA attributes and improving keyboard navigation."
+          }
+          }
+        ]
+      }) }}
+
+      {{ govukSummaryList({
+        card: {
+          title: {
+            text: "Chat History"
+          },
+          actions: {
+            items: [
+              {
+                href: "/open-chat-history",
+                text: "Open",
+                visuallyHiddenText: "Open this chat history"
+              },
+              {
+                href: "/delete-chat-history",
+                text: "Delete",
+                visuallyHiddenText: "Delete this chat history"
+              }
+            ]
+          }
+        },
+        rows: [
+          {
+            key: {
+            text: "Date"
+          },
+            value: {
+            html: "15th January 2025"
+          }
+          },
+          {
+            key: {
+            text: "Summary"
+          },
+            value: {
+            html: "You explored options for exporting chat histories."
+          }
+          },
+          {
+            key: {
+            text: "Agent Response"
+          },
+            value: {
+            html: "I provided details on generating PDF and CSV exports."
+          }
+          }
+        ]
+      }) }}
+    </div>
+  </div>
+{% endblock %}

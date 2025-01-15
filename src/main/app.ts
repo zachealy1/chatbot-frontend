@@ -1,3 +1,4 @@
+
 import * as path from 'path';
 
 import { HTTPError } from './HttpError';
@@ -38,6 +39,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use((req, res, next) => {
   res.setHeader('Cache-Control', 'no-cache, max-age=0, must-revalidate, no-store');
   next();
+});
+
+// Add a route for /chat-history
+app.get('/chat-history', (req, res) => {
+  res.render('chat-history'); // Render the Nunjucks template for chat history
+});
+
+// Add a route for /contact-support
+app.get('/contact-support', (req, res) => {
+  res.render('contact-support'); // Render the Nunjucks template for contact support
 });
 
 glob
