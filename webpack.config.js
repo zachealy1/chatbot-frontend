@@ -35,6 +35,7 @@ module.exports = {
   entry: {
     main: path.resolve(sourcePath, 'index.ts'), // Main entry point
     chat: path.resolve(sourcePath, 'chat.js'), // New entry point for chat script
+    password: path.resolve(sourcePath, 'password.ts'),
   },
   mode: devMode ? 'development' : 'production',
   devtool: devMode ? 'inline-source-map' : false, // Avoid 'eval' in source maps

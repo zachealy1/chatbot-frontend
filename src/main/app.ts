@@ -41,6 +41,31 @@ app.use((req, res, next) => {
   next();
 });
 
+// Add a route for /forgot-password
+app.get('/forgot-password', (req, res) => {
+  res.render('forgot-password'); // Render the Nunjucks template for forgot password
+});
+
+// Add a route for /enter-code
+app.get('/enter-code', (req, res) => {
+  res.render('enter-code'); // Render the Nunjucks template for enter code
+});
+
+// Add a route for /reset-password
+app.get('/reset-password', (req, res) => {
+  res.render('reset-password'); // Render the Nunjucks template for reset password
+});
+
+// Add a route for /register
+app.get('/register', (req, res) => {
+  res.render('register'); // Render the Nunjucks template for register
+});
+
+// Add a route for /chat
+app.get('/chat', (req, res) => {
+  res.render('chat'); // Render the Nunjucks template for chat
+});
+
 // Add a route for /chat-history
 app.get('/chat-history', (req, res) => {
   res.render('chat-history'); // Render the Nunjucks template for chat history

@@ -1,0 +1,108 @@
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% extends "template.njk" %}
+
+{% block pageTitle %}
+  HMCTS chatbot
+{% endblock %}
+
+{% block header %}
+  {{ govukHeader({
+    classes: "govuk-header--full-width-border"
+  }) }}
+
+  {{ govukServiceNavigation({
+    serviceName: "HMCTS chatbot"
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">Create an account</h1>
+
+  <p class="govuk-body">
+    Already have an account? <a href="/" class="govuk-link">Sign in here</a>.
+  </p>
+
+  <form action="/register" method="post">
+
+    {{ govukInput({
+      label: {
+        text: "Username"
+      },
+      classes: "govuk-!-width-one-half",
+      id: "username",
+      name: "username"
+    }) }}
+
+    {{ govukInput({
+      label: {
+        text: "Email"
+      },
+      classes: "govuk-!-width-one-half",
+      id: "email",
+      name: "email",
+      type: "email"
+    }) }}
+
+    <div class="govuk-form-group">
+      <label class="govuk-label" for="password">
+        Password
+      </label>
+
+      <div class="govuk-!-display-inline-flex govuk-!-align-items-baseline">
+        <input
+          class="govuk-input govuk-!-width-one-half"
+          id="password"
+          name="password"
+          type="password"
+        >
+
+        <button
+          type="button"
+          class="govuk-button govuk-show-button govuk-button--secondary govuk-!-margin-left-1 toggle-button"
+          data-module="govuk-button"
+          aria-expanded="false"
+        >
+          Show
+        </button>
+      </div>
+    </div>
+
+    <div class="govuk-form-group">
+      <label class="govuk-label" for="confirm-password">
+        Confirm Password
+      </label>
+
+      <div class="govuk-!-display-inline-flex govuk-!-align-items-baseline">
+        <input
+          class="govuk-input govuk-!-width-one-half"
+          id="confirm-password"
+          name="confirmPassword"
+          type="password"
+        >
+
+        <button
+          type="button"
+          class="govuk-button govuk-show-button govuk-button--secondary govuk-!-margin-left-1 toggle-button"
+          data-module="govuk-button"
+          aria-expanded="false"
+        >
+          Show
+        </button>
+      </div>
+    </div>
+
+    {{ govukButton({
+      text: "Request account",
+      classes: "govuk-!-margin-top-3",
+      href: "/chat"
+    }) }}
+
+  </form>
+
+  <script src="password-dev.js"></script>
+
+{% endblock %}

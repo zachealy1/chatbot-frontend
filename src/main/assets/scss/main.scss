@@ -1,5 +1,25 @@
 @import 'govuk-frontend';
 
+.govuk-heading-xl {
+  padding-top: 40px;
+}
+
+.hidden-content {
+  display: none;
+}
+
+.visible-content {
+  display: block;
+}
+
+.govuk-show-button {
+  margin-bottom: 0;
+}
+
+.govuk-heading-l {
+  margin-top: 30px;
+}
+
 .custom-full-width-border {
   width: 100vw;
   margin-left: calc(-50vw + 50%);
@@ -78,11 +98,11 @@
   min-width: 0 !important;
 }
 
-.custom-full-width-border .govuk-button {
+.custom-full-width-border .govuk-button-new {
   white-space: nowrap !important;
 }
 
-.govuk-button {
+.govuk-button-new {
   height: 40px;
   display: flex;
   align-items: center;
@@ -100,5 +120,6 @@
 }
 
 .govuk-panel {
-  margin-top: 15px;
+  margin-top: 50px;
+  margin-bottom: 50px;
 }

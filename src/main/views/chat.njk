@@ -1,0 +1,71 @@
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+
+{% extends "template.njk" %}
+
+{% block pageTitle %}
+  HMCTS chatbot
+{% endblock %}
+
+{% block header %}
+  {{ govukHeader({
+    classes: "govuk-header--full-width-border",
+    homepageUrl: "/chat"
+  }) }}
+
+  {{ govukServiceNavigation({
+    serviceName: "HMCTS chatbot",
+    navigation: [
+      {
+        href: "/chat",
+        text: "Chat",
+        active: true
+      },
+      {
+        href: "/chat-history",
+        text: "Chat History"
+      },
+      {
+        href: "/contact-support",
+        text: "Contact Support"
+      },
+      {
+        href: "/",
+        text: "Logout"
+      }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <!-- Chat Box -->
+  <div class="govuk-width-container">
+    <div class="govuk-chat-box scrollable-div" id="chat-box">
+      <!-- Existing messages will go here -->
+    </div>
+  </div>
+
+  <!-- Input Section -->
+  <div class="custom-full-width-border">
+    <div class="govuk-width-container">
+      <input
+        class="govuk-input"
+        id="chat-input"
+        name="chatInput"
+        type="text"
+        placeholder="Type your message"
+      >
+      <button
+        type="button"
+        class="govuk-button govuk-button-new"
+        id="send-button"
+      >
+        Send
+      </button>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="chat-dev.js"></script>
+{% endblock %}
+

@@ -1,0 +1,47 @@
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% extends "template.njk" %}
+
+{% block pageTitle %}
+  HMCTS chatbot
+{% endblock %}
+
+{% block header %}
+  {{ govukHeader({
+    classes: "govuk-header--full-width-border"
+  }) }}
+
+  {{ govukServiceNavigation({
+    serviceName: "HMCTS chatbot"
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">Enter one time password</h1>
+
+  <p class="govuk-body">
+    Enter the one time password we emailed to you below.
+  </p>
+
+  {{ govukInput({
+    label: {
+      text: "One time password"
+    },
+    classes: "govuk-!-width-one-half",
+    id: "one-time-password",
+    name: "oneTimePassword"
+  }) }}
+
+  {{ govukButton({
+    text: "Continue",
+    href: "/reset-password"
+  }) }}
+  {{ govukButton({
+    text: "Resend Email",
+    classes: "govuk-button--secondary"
+  }) }}
+{% endblock %}
+
