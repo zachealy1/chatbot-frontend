@@ -76,6 +76,16 @@ app.get('/contact-support', (req, res) => {
   res.render('contact-support'); // Render the Nunjucks template for contact support
 });
 
+// Add a route for /account
+app.get('/account', (req, res) => {
+  res.render('account'); // Render the Nunjucks template for account
+});
+
+// Add a route for /account/update
+app.get('/account/update', (req, res) => {
+  res.render('update'); // Render the Nunjucks template for update
+});
+
 glob
   .sync(__dirname + '/routes/**/*.+(ts|js)')
   .map(filename => require(filename))

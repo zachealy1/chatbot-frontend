@@ -1,0 +1,35 @@
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% extends "template.njk" %}
+
+{% block pageTitle %}
+  HMCTS chatbot
+{% endblock %}
+
+{% block header %}
+  {{ govukHeader({
+    classes: "govuk-header--full-width-border"
+  }) }}
+
+  {{ govukServiceNavigation({
+    serviceName: "HMCTS chatbot"
+  }) }}
+{% endblock %}
+
+{% block content %}
+  {{ govukPanel({
+    titleText: "Thank you for updating your account",
+    html: "Your account has been updated successfully."
+  }) }}
+
+  <div class="govuk-!-margin-top-3">
+    {{ govukButton({
+      text: "Go to Home",
+      href: "/",
+      classes: "govuk-button--secondary"
+    }) }}
+  </div>
+{% endblock %}

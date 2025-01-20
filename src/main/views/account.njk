@@ -1,0 +1,106 @@
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% extends "template.njk" %}
+
+{% block pageTitle %}
+  HMCTS chatbot
+{% endblock %}
+
+{% block header %}
+  {{ govukHeader({
+    classes: "govuk-header--full-width-border"
+  }) }}
+
+  {{ govukServiceNavigation({
+    serviceName: "HMCTS chatbot",
+    navigation: [
+      {
+        href: "/chat",
+        text: "Chat"
+      },
+      {
+        href: "/chat-history",
+        text: "Chat History"
+      },
+      {
+        href: "/contact-support",
+        text: "Contact Support"
+      },
+      {
+        href: "/account",
+        text: "Account",
+        active: true
+      },
+      {
+        href: "/",
+        text: "Logout"
+      }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">Manage Your Account</h1>
+
+  <form>
+    <!-- Username -->
+    <div class="govuk-form-group">
+      <label class="govuk-label" for="username">Username</label>
+      <input
+        class="govuk-input govuk-!-width-one-half"
+        id="username"
+        name="username"
+        type="text"
+        value="example_user"
+        required
+      >
+    </div>
+
+    <!-- Email -->
+    <div class="govuk-form-group">
+      <label class="govuk-label" for="email">Email</label>
+      <input
+        class="govuk-input govuk-!-width-one-half"
+        id="email"
+        name="email"
+        type="email"
+        value="example@email.com"
+        required
+      >
+    </div>
+
+    <!-- Password -->
+    <div class="govuk-form-group">
+      <label class="govuk-label" for="password">New Password</label>
+      <input
+        class="govuk-input govuk-!-width-one-half"
+        id="password"
+        name="password"
+        type="password"
+        placeholder="Leave blank to keep the current password"
+      >
+    </div>
+
+    <!-- Confirm Password -->
+    <div class="govuk-form-group">
+      <label class="govuk-label" for="confirm-password">Confirm New Password</label>
+      <input
+        class="govuk-input govuk-!-width-one-half"
+        id="confirm-password"
+        name="confirmPassword"
+        type="password"
+        placeholder="Re-enter the new password"
+      >
+    </div>
+
+    <!-- Submit Button -->
+    {{ govukButton({
+      text: "Save Changes",
+      classes: "govuk-!-margin-top-3",
+      href: "/account/update"
+    }) }}
+  </form>
+{% endblock %}
