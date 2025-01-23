@@ -93,6 +93,18 @@ app.post('/login/password', (req, res, next) => {
   })(req, res, next);
 });
 
+app.get('/logout', (req, res) => {
+  req.logout(err => {
+    if (err) {
+      return res.status(500).send('Failed to logout');
+    }
+
+    req.session.destroy(() => {
+      res.redirect('/login');
+    });
+  });
+});
+
 app.get('/forgot-password', (req, res) => {
   res.render('forgot-password');
 });
