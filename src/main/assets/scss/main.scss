@@ -21,7 +21,6 @@
 }
 
 @media (max-width: 640px) {
-
   .govuk-button--secondary {
     margin-top: 20px;
   }
@@ -32,6 +31,16 @@
 
   .govuk-input-password {
     margin-bottom: 0;
+  }
+
+  .govuk-width-container {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .custom-full-width-border .govuk-width-container {
+    flex-direction: column;
+    gap: 1rem;
   }
 }
 
@@ -91,7 +100,14 @@
   margin-right: 8px;
 }
 
-.scrollable-div {
+.scrollable-chat-div {
+  overflow-y: scroll;
+  scroll-behavior: auto;
+  position: relative;
+  height: 400px;
+}
+
+.scrollable-history-div {
   overflow-y: scroll;
   scroll-behavior: auto;
   position: relative;
@@ -106,19 +122,18 @@
 }
 
 .custom-full-width-border .govuk-width-container {
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 1rem !important;
+  display: flex;
+  gap: 1rem;
   box-sizing: border-box;
 }
 
 .custom-full-width-border .govuk-input {
-  flex: 1 !important;
-  min-width: 0 !important;
+  flex: 1;
+  min-width: 0;
 }
 
 .custom-full-width-border .govuk-button-new {
-  white-space: nowrap !important;
+  white-space: nowrap;
 }
 
 .govuk-button-new {
