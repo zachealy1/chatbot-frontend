@@ -58,6 +58,13 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+function ensureAuthenticated(req: express.Request, res: express.Response, next: express.NextFunction): void {
+  if (req.isAuthenticated()) {
+    return next(); // Proceed to the route
+  }
+  res.redirect('/login'); // Redirect to login if not authenticated
+}
+
 app.get('/', (req, res) => {
   res.redirect('/login');
 });
@@ -98,19 +105,19 @@ app.get('/reset-password', (req, res) => {
 app.get('/register', (req, res) => {
   res.render('register');
 });
-app.get('/chat', (req, res) => {
+app.get('/chat', ensureAuthenticated, (req, res) => {
   res.render('chat');
 });
-app.get('/chat-history', (req, res) => {
+app.get('/chat-history', ensureAuthenticated, (req, res) => {
   res.render('chat-history');
 });
-app.get('/contact-support', (req, res) => {
+app.get('/contact-support', ensureAuthenticated, (req, res) => {
   res.render('contact-support');
 });
-app.get('/account', (req, res) => {
+app.get('/account', ensureAuthenticated, (req, res) => {
   res.render('account');
 });
-app.get('/account/update', (req, res) => {
+app.get('/account/update', ensureAuthenticated, (req, res) => {
   res.render('update');
 });
 
