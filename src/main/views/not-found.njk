@@ -1,10 +1,13 @@
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+
 {% extends "template.njk" %}
 
 {% block pageTitle %}
-  HMCTS chatbot
+  HMCTS chatbot admin
 {% endblock %}
 
-{% block content %}
+{% block header %}
   {{ govukHeader({
     classes: "govuk-header--full-width-border"
   }) }}
@@ -12,6 +15,8 @@
   {{ govukServiceNavigation({
     serviceName: "HMCTS chatbot"
   }) }}
-  
+{% endblock %}
+
+{% block content %}
   <h1 class="govuk-heading-xl">Page Not Found</h1>
 {% endblock %}
