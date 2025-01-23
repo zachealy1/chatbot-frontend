@@ -5,5 +5,13 @@
 {% endblock %}
 
 {% block content %}
+  {{ govukHeader({
+    classes: "govuk-header--full-width-border"
+  }) }}
+
+  {{ govukServiceNavigation({
+    serviceName: "HMCTS chatbot"
+  }) }}
+  
   <h1 class="govuk-heading-xl">Page Not Found</h1>
 {% endblock %}

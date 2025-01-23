@@ -66,10 +66,25 @@ app.get('/login', function(req, res) {
   res.render('login');
 });
 
-app.post('/login/password', passport.authenticate('local', {
-  successRedirect: '/chat',
-  failureRedirect: '/login'
-}));
+app.post('/login/password', (req, res, next) => {
+  passport.authenticate('local', (err: never, user: Express.User) => {
+    if (err) {
+      return next(err);
+    }
+    if (!user) {
+      return res.render('login', {
+        error: 'Invalid username or password.',
+        username: req.body.username,
+      });
+    }
+    req.logIn(user, loginErr => {
+      if (loginErr) {
+        return next(loginErr);
+      }
+      return res.redirect('/chat');
+    });
+  })(req, res, next);
+});
 
 app.get('/forgot-password', (req, res) => {
   res.render('forgot-password');
