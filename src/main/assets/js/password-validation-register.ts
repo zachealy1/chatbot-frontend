@@ -4,42 +4,41 @@ document.addEventListener('DOMContentLoaded', () => {
   form.addEventListener('submit', (event: Event) => {
     let isValid = true;
 
-    // Validate Passwords
     const passwordInput = document.querySelector('#password') as HTMLInputElement;
     const confirmPasswordInput = document.querySelector('#confirm-password') as HTMLInputElement;
 
     const passwordFieldset = passwordInput.closest('.govuk-form-group') as HTMLElement;
-    const passwordErrorElement = passwordFieldset?.querySelector('.govuk-error-message') as HTMLElement | null;
 
-    // Remove existing error styles and messages for passwords
     passwordFieldset?.classList.remove('govuk-form-group--error');
-    passwordErrorElement?.remove();
+    const existingError = passwordFieldset?.querySelector('.govuk-error-message');
+    existingError?.remove();
 
     const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    let passwordErrorMessage = '';
-
-    if (!passwordInput?.value) {
-      passwordErrorMessage = 'Please enter a password.';
-    } else if (!passwordCriteriaRegex.test(passwordInput.value)) {
-      passwordErrorMessage = 'Your password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.';
-    } else if (passwordInput?.value !== confirmPasswordInput?.value) {
-      passwordErrorMessage = 'Passwords do not match.';
-    }
-
-    if (passwordErrorMessage) {
+    if (!passwordInput.value) {
       isValid = false;
-
-      passwordFieldset?.classList.add('govuk-form-group--error');
-      const errorMessage = document.createElement('p');
-      errorMessage.className = 'govuk-error-message';
-      errorMessage.id = 'password-error';
-      errorMessage.innerHTML = `<span class="govuk-visually-hidden">Error:</span> ${passwordErrorMessage}`;
-      passwordFieldset?.querySelector('label')?.insertAdjacentElement('afterend', errorMessage);
+      showError(passwordFieldset, 'Please enter a password.');
+    } else if (!passwordCriteriaRegex.test(passwordInput.value)) {
+      isValid = false;
+      showError(
+        passwordFieldset,
+        'Your password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.'
+      );
+    } else if (passwordInput.value !== confirmPasswordInput.value) {
+      isValid = false;
+      showError(passwordFieldset, 'Passwords do not match.');
     }
 
     if (!isValid) {
       event.preventDefault();
     }
   });
+
+  function showError(fieldset: HTMLElement, message: string) {
+    fieldset.classList.add('govuk-form-group--error');
+    const errorMessage = document.createElement('p');
+    errorMessage.className = 'govuk-error-message';
+    errorMessage.innerHTML = `<span class="govuk-visually-hidden">Error:</span> ${message}`;
+    fieldset.querySelector('label')?.insertAdjacentElement('afterend', errorMessage);
+  }
 });
