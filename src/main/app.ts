@@ -20,7 +20,6 @@ const { setupDev } = require('./development');
 
 const { Logger } = require('@hmcts/nodejs-logging');
 
-
 const env = process.env.NODE_ENV || 'development';
 const developmentMode = env === 'development';
 const logger = Logger.getLogger('app');
@@ -65,14 +64,6 @@ function ensureAuthenticated(req: express.Request, res: express.Response, next: 
   res.redirect('/login'); // Redirect to login if not authenticated
 }
 
-app.get('/', (req, res) => {
-  res.redirect('/login');
-});
-
-app.get('/login', function(req, res) {
-  res.render('login');
-});
-
 app.post('/login/password', (req, res, next) => {
   passport.authenticate('local', (err: never, user: Express.User) => {
     if (err) {
@@ -105,13 +96,205 @@ app.get('/logout', (req, res) => {
   });
 });
 
+app.post('/forgot-password/enter-email', (req, res) => {
+  const email = req.body.email; // Retrieve the email from the form submission
+
+  // Basic email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!email || !emailRegex.test(email)) {
+    // If no email or invalid email is provided, re-render the form with an error message
+    return res.render('forgot-password', {
+      errors: [
+        {
+          text: 'Please enter a valid email address.',
+          href: '#email',
+        },
+      ],
+    });
+  }
+
+  // Simulate email sending logic (replace with your actual logic)
+  console.log(`Sending password reset email to: ${email}`);
+
+  // Redirect to the next step (e.g., a page to enter the code)
+  res.redirect('/forgot-password/verify-otp');
+});
+
+
+app.post('/forgot-password/reset-password', (req, res) => {
+  const { password, confirmPassword } = req.body;
+
+  // Validate that both passwords match
+  if (password !== confirmPassword) {
+    return res.render('reset-password', {
+      error: 'Passwords do not match.',
+    });
+  }
+
+  // Validate password criteria
+  const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  if (!passwordCriteriaRegex.test(password)) {
+    return res.render('reset-password', {
+      error: 'Your password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.',
+    });
+  }
+
+  // Simulate updating the password
+  console.log('Password reset successfully for user.');
+
+  // Redirect to success page
+  res.redirect('/chat');
+});
+
+
+app.post('/forgot-password/verify-otp', (req, res) => {
+  const { oneTimePassword } = req.body;
+  const expectedOTP = '123456'; // Replace with your actual logic
+
+  if (!oneTimePassword || oneTimePassword !== expectedOTP) {
+    return res.render('verify-otp', {
+      error: 'The one-time password you entered is incorrect. Please try again.',
+    });
+  }
+
+  res.redirect('/forgot-password/reset-password');
+});
+
+
+app.post('/forgot-password/resend-otp', (req, res) => {
+  console.log('Resending OTP...');
+  res.redirect('/forgot-password/verify-otp');
+});
+
+app.post('/register', (req, res) => {
+  const { username, email, password, confirmPassword, 'date-of-birth-day': day, 'date-of-birth-month': month, 'date-of-birth-year': year } = req.body;
+
+  // Validation Errors
+  const errors: string[] = [];
+  const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  // Validate Username
+  if (!username || username.trim() === '') {
+    errors.push('Username is required.');
+  }
+
+  // Validate Email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    errors.push('Enter a valid email address.');
+  }
+
+  // Validate Date of Birth
+  const isValidDate = (dateOfBirthDay: string, dateOfBirthMonth: string, dateOfBirthYear: string): boolean => {
+    const date = new Date(`${dateOfBirthYear}-${dateOfBirthMonth}-${dateOfBirthDay}`);
+    return !isNaN(date.getTime()) && date < new Date();
+  };
+
+  if (!day || !month || !year || !isValidDate(day, month, year)) {
+    errors.push('Enter a valid date of birth.');
+  }
+
+  // Validate Password
+  if (!password || !passwordCriteriaRegex.test(password)) {
+    errors.push('Password must meet the criteria.');
+  }
+
+  // Confirm Password Match
+  if (password !== confirmPassword) {
+    errors.push('Passwords do not match.');
+  }
+
+  // If there are validation errors, re-render the form with error messages
+  if (errors.length > 0) {
+    return res.render('register', {
+      errors,
+      username,
+      email,
+      day,
+      month,
+      year,
+    });
+  }
+
+  // Simulate registration success
+  console.log('User registered successfully:', { username, email });
+  res.redirect('/login');
+});
+
+app.post('/account/update', (req, res) => {
+  const { username, email, password, confirmPassword, 'date-of-birth-day': day, 'date-of-birth-month': month, 'date-of-birth-year': year } = req.body;
+
+  // Validation Errors
+  const errors: string[] = [];
+  const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  // Validate Username
+  if (!username || username.trim() === '') {
+    errors.push('Username is required.');
+  }
+
+  // Validate Email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    errors.push('Enter a valid email address.');
+  }
+
+  // Validate Date of Birth
+  const isValidDate = (dateOfBirthDay: string, dateOfBirthMonth: string, dateOfBirthYear: string): boolean => {
+    const date = new Date(`${dateOfBirthYear}-${dateOfBirthMonth}-${dateOfBirthDay}`);
+    return !isNaN(date.getTime()) && date < new Date();
+  };
+
+  if (!day || !month || !year || !isValidDate(day, month, year)) {
+    errors.push('Enter a valid date of birth.');
+  }
+
+  // Validate Password if provided
+  if (password) {
+    if (!passwordCriteriaRegex.test(password)) {
+      errors.push('Password must meet the criteria.');
+    }
+
+    // Confirm Password Match
+    if (password !== confirmPassword) {
+      errors.push('Passwords do not match.');
+    }
+  }
+
+  // If there are validation errors, re-render the form with error messages
+  if (errors.length > 0) {
+    return res.render('account', {
+      errors,
+      username,
+      email,
+      day,
+      month,
+      year,
+    });
+  }
+
+  // Simulate account update success
+  console.log('Account updated successfully:', { username, email, day, month, year });
+  res.redirect('/account');
+});
+
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
+app.get('/login', function(req, res) {
+  res.render('login');
+});
+
 app.get('/forgot-password', (req, res) => {
   res.render('forgot-password');
 });
-app.get('/enter-code', (req, res) => {
-  res.render('enter-code');
+
+app.get('/forgot-password/verify-otp', (req, res) => {
+  res.render('verify-otp');
 });
-app.get('/reset-password', (req, res) => {
+app.get('/forgot-password/reset-password', (req, res) => {
   res.render('reset-password');
 });
 app.get('/register', (req, res) => {

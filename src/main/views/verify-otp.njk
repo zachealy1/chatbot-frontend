@@ -1,0 +1,57 @@
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+{% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% extends "template.njk" %}
+
+{% block pageTitle %}
+  HMCTS chatbot
+{% endblock %}
+
+{% block header %}
+  {{ govukHeader({
+    classes: "govuk-header--full-width-border"
+  }) }}
+
+  {{ govukServiceNavigation({
+    serviceName: "HMCTS chatbot"
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <h1 class="govuk-heading-xl">Enter one time password</h1>
+
+  <!-- Start of Form -->
+  <form action="/forgot-password/verify-otp" method="post" novalidate>
+    <div class="govuk-form-group {% if error %}govuk-form-group--error{% endif %}" id="otp-group">
+      <label class="govuk-label" for="one-time-password">One time password</label>
+      <div id="one-time-password-hint" class="govuk-hint">
+        Enter the one-time password we emailed to you.
+      </div>
+      {% if error %}
+        <p id="one-time-password-error" class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span> {{ error }}
+        </p>
+      {% endif %}
+      <input
+        class="govuk-input govuk-!-width-one-half {% if error %}govuk-input--error{% endif %}"
+        id="one-time-password"
+        name="oneTimePassword"
+        type="text"
+        aria-describedby="one-time-password-hint {% if error %}one-time-password-error{% endif %}"
+      >
+    </div>
+    <button type="submit" class="govuk-button" id="continue-button">Continue</button>
+    <button
+      type="submit"
+      class="govuk-button govuk-button--secondary"
+      formaction="/forgot-password/resend-otp"
+      id="resend-button"
+    >
+      Resend Email
+    </button>
+  </form>
+
+  <script src="/otpValidation-dev.js" defer></script>
+{% endblock %}
