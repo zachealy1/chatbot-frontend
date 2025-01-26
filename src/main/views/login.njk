@@ -40,6 +40,11 @@
     <!-- Username Field -->
     <div class="govuk-form-group {% if error %}govuk-form-group--error{% endif %}">
       <label class="govuk-label" for="username">Username</label>
+      {% if error %}
+        <span id="username-error" class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span> {{ error }}
+        </span>
+      {% endif %}
       <input
         class="govuk-input govuk-!-width-one-half {% if error %}govuk-input--error{% endif %}"
         id="username"
@@ -47,27 +52,22 @@
         type="text"
         value="{{ username | default('') }}"
       >
-      {% if error %}
-        <span id="username-error" class="govuk-error-message">
-          <span class="govuk-visually-hidden">Error:</span> {{ error }}
-        </span>
-      {% endif %}
     </div>
 
     <!-- Password Field -->
     <div class="govuk-form-group {% if error %}govuk-form-group--error{% endif %}">
       <label class="govuk-label" for="password">Password</label>
+      {% if error %}
+        <span id="password-error" class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span> {{ error }}
+        </span>
+      {% endif %}
       <input
         class="govuk-input govuk-!-width-one-half {% if error %}govuk-input--error{% endif %}"
         id="password"
         name="password"
         type="password"
       >
-      {% if error %}
-        <span id="password-error" class="govuk-error-message">
-          <span class="govuk-visually-hidden">Error:</span> {{ error }}
-        </span>
-      {% endif %}
     </div>
 
     {{ govukButton({
