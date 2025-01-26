@@ -1,14 +1,24 @@
+// src/showPassword.ts
+
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('Show Password script loaded.');
+
   // Query all toggle buttons
   const toggleButtons = document.querySelectorAll<HTMLButtonElement>('.toggle-button');
 
   toggleButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      // Find the input associated with this button
-      const passwordInput = button.previousElementSibling as HTMLInputElement;
+      // Get the target input ID from data attribute
+      const targetId = button.getAttribute('data-target');
+      if (!targetId) {
+        console.warn('No data-target attribute found on button:', button);
+        return;
+      }
+
+      const passwordInput = document.getElementById(targetId) as HTMLInputElement | null;
 
       if (!passwordInput || passwordInput.tagName !== 'INPUT') {
-        // If no input is found or the sibling is not an input field, exit early
+        console.warn(`No input found with id "${targetId}" or element is not an input.`);
         return;
       }
 
