@@ -294,6 +294,7 @@ app.get('/forgot-password', (req, res) => {
 app.get('/forgot-password/verify-otp', (req, res) => {
   res.render('verify-otp');
 });
+
 app.get('/forgot-password/reset-password', (req, res) => {
   res.render('reset-password');
 });
