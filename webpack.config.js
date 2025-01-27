@@ -41,6 +41,7 @@ module.exports = {
     dateOfBirthValidation: path.resolve(sourcePath, 'date-of-birth-validation.ts'),
     emailValidation: path.resolve(sourcePath, 'email-validation.ts'),
     otpValidation: path.resolve(sourcePath, 'otp-validation.ts'),
+    logout: path.resolve(sourcePath, 'logout.ts'),
   },
   mode: devMode ? 'development' : 'production',
   devtool: devMode ? 'inline-source-map' : false, // Avoid 'eval' in source maps
