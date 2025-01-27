@@ -121,7 +121,6 @@ app.post('/forgot-password/enter-email', (req, res) => {
   res.redirect('/forgot-password/verify-otp');
 });
 
-
 app.post('/forgot-password/reset-password', (req, res) => {
   const { password, confirmPassword } = req.body;
 
@@ -144,9 +143,8 @@ app.post('/forgot-password/reset-password', (req, res) => {
   console.log('Password reset successfully for user.');
 
   // Redirect to success page
-  res.redirect('/chat');
+  res.redirect('/login?passwordReset=true');
 });
-
 
 app.post('/forgot-password/verify-otp', (req, res) => {
   const { oneTimePassword } = req.body;
@@ -160,7 +158,6 @@ app.post('/forgot-password/verify-otp', (req, res) => {
 
   res.redirect('/forgot-password/reset-password');
 });
-
 
 app.post('/forgot-password/resend-otp', (req, res) => {
   console.log('Resending OTP...');
@@ -219,7 +216,7 @@ app.post('/register', (req, res) => {
 
   // Simulate registration success
   console.log('User registered successfully:', { username, email });
-  res.redirect('/login');
+  res.redirect('/login?created=true');
 });
 
 app.post('/account/update', (req, res) => {
@@ -276,7 +273,7 @@ app.post('/account/update', (req, res) => {
 
   // Simulate account update success
   console.log('Account updated successfully:', { username, email, day, month, year });
-  res.redirect('/account');
+  res.redirect('/account?updated=true');
 });
 
 app.get('/', (req, res) => {
@@ -284,20 +281,30 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', function(req, res) {
-  res.render('login');
+  const { created, passwordReset } = req.query;
+
+  res.render('login', {
+    created: created === 'true', // Use 'created' to match the template
+    passwordReset: passwordReset === 'true',
+  });
 });
 
 app.get('/forgot-password', (req, res) => {
   res.render('forgot-password');
 });
 
-app.get('/forgot-password/verify-otp', (req, res) => {
-  res.render('verify-otp');
+app.get('/forgot-password/verify-otp', function(req, res) {
+  const { sent } = req.query;
+
+  res.render('verify-otp', {
+    sent: sent === 'true',
+  });
 });
 
 app.get('/forgot-password/reset-password', (req, res) => {
   res.render('reset-password');
 });
+
 app.get('/register', (req, res) => {
   res.render('register');
 });

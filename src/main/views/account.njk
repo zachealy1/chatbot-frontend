@@ -46,6 +46,23 @@
 {% block content %}
   <h1 class="govuk-heading-xl">Manage Your Account</h1>
 
+  <!-- Success Alert -->
+  {% if updated %}
+    <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+      <div class="govuk-notification-banner__header">
+        <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+          Success
+        </h2>
+      </div>
+      <div class="govuk-notification-banner__content">
+        <h3 class="govuk-notification-banner__heading">
+          Your account has been updated successfully
+        </h3>
+        <p class="govuk-body">Contact <a class="govuk-notification-banner__link" href="#">example@department.gov.uk</a> if you think there’s a problem.</p>
+      </div>
+    </div>
+  {% endif %}
+
   <!-- Server-side error summary -->
   {% if errors %}
     <div class="govuk-error-summary" role="alert" tabindex="-1">
@@ -65,14 +82,20 @@
         <label class="govuk-label--l govuk-label" for="username">Username</label>
       </h1>
       <input
-        class="govuk-input govuk-!-width-one-half"
+        class="govuk-input govuk-!-width-one-half {% if errors.username %}govuk-input--error{% endif %}"
         id="username"
         name="username"
         type="text"
         placeholder="Enter your username"
         value="{{ username | default('example_user') }}"
         required
+        aria-describedby="{% if errors.username %}username-error{% endif %}"
       >
+      {% if errors.username %}
+        <span id="username-error" class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span> {{ errors.username }}
+        </span>
+      {% endif %}
     </div>
 
     <!-- Email Section -->
@@ -81,14 +104,20 @@
         <label class="govuk-label--l govuk-label" for="email">Email</label>
       </h1>
       <input
-        class="govuk-input govuk-!-width-one-half"
+        class="govuk-input govuk-!-width-one-half {% if errors.email %}govuk-input--error{% endif %}"
         id="email"
         name="email"
         type="email"
         placeholder="Enter your email address"
-        value="example@example.com"
+        value="{{ email | default('example@example.com') }}"
         required
+        aria-describedby="{% if errors.email %}email-error{% endif %}"
       >
+      {% if errors.email %}
+        <span id="email-error" class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span> {{ errors.email }}
+        </span>
+      {% endif %}
     </div>
 
     <!-- Date of Birth Section -->
@@ -153,26 +182,37 @@
       <!-- New Password -->
       <label class="govuk-label" for="password">New Password</label>
       <input
-        class="govuk-input govuk-input-password govuk-!-width-one-half"
+        class="govuk-input govuk-input-password govuk-!-width-one-half {% if errors.password %}govuk-input--error{% endif %}"
         id="password"
         name="password"
         type="password"
         placeholder="Leave blank to keep the current password"
-        aria-describedby="password-hint"
+        aria-describedby="password-hint {% if errors.password %}password-error{% endif %}"
       >
-      <button type="button" class="govuk-button govuk-button--secondary govuk-button-password--secondary toggle-button" data-module="govuk-button" aria-expanded="false">
+      {% if errors.password %}
+        <span id="password-error" class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span> {{ errors.password }}
+        </span>
+      {% endif %}
+      <button type="button" class="govuk-button govuk-button--secondary toggle-button" data-module="govuk-button" aria-expanded="false">
         Show
       </button>
 
       <!-- Confirm New Password -->
       <label class="govuk-label" for="confirm-password">Confirm New Password</label>
       <input
-        class="govuk-input govuk-!-width-one-half"
+        class="govuk-input govuk-!-width-one-half {% if errors.confirmPassword %}govuk-input--error{% endif %}"
         id="confirm-password"
         name="confirmPassword"
         type="password"
         placeholder="Re-enter the new password"
+        aria-describedby="{% if errors.confirmPassword %}confirm-password-error{% endif %}"
       >
+      {% if errors.confirmPassword %}
+        <span id="confirm-password-error" class="govuk-error-message">
+          <span class="govuk-visually-hidden">Error:</span> {{ errors.confirmPassword }}
+        </span>
+      {% endif %}
       <button type="button" class="govuk-button govuk-button--secondary toggle-button" data-module="govuk-button" aria-expanded="false">
         Show
       </button>
