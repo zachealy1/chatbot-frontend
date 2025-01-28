@@ -64,7 +64,7 @@ function ensureAuthenticated(req: express.Request, res: express.Response, next: 
   res.redirect('/login'); // Redirect to login if not authenticated
 }
 
-app.post('/login/password', (req, res, next) => {
+app.post('/login', (req, res, next) => {
   passport.authenticate('local', (err: never, user: Express.User) => {
     if (err) {
       return next(err);
