@@ -1,49 +1,43 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const axios = require('axios');
 
-// Example in-memory user object
-const testUser = {
-  id: 1,
-  username: 'admin',
-  password: 'password'
-};
-
-// LocalStrategy for username/password
+// LocalStrategy for username/password authentication
 passport.use(
-  new LocalStrategy((username, password, done) => {
-    if (username !== testUser.username) {
-      return done(null, false, { message: 'Incorrect username.' });
+  new LocalStrategy(async (username, password, done) => {
+    try {
+      // Send login credentials to the Spring Boot backend
+      const response = await axios.post('http://localhost:4550/login/chat', { username, password });
+
+      // If authentication is successful, return the user object from backend
+      const user = { username, sessionToken: response.data.sessionToken };
+      return done(null, user);
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        return done(null, false, { message: 'Invalid username or password.' });
+      }
+      return done(error);
     }
-    if (password !== testUser.password) {
-      return done(null, false, { message: 'Incorrect password.' });
-    }
-    return done(null, testUser);
   })
 );
 
 /**
  * Serialize user
- * - This is called when the user logs in (or is already logged in)
- * - You save just the user.id into the session.
+ * - Stores only necessary user details in session (e.g., username, sessionToken)
  */
 passport.serializeUser((user, done) => {
-  // user is the testUser object from above
-  // store just the id in the session
-  done(null, user.id);
+  done(null, user);
 });
 
 /**
  * Deserialize user
- * - This is called on every request that has an active login session
- * - We use the id to find the user and restore req.user
+ * - Retrieves user from session
  */
-passport.deserializeUser((id, done) => {
-  // For a single in-memory user, just compare the ID
-  if (id === testUser.id) {
-    return done(null, testUser);
+passport.deserializeUser((user, done) => {
+  if (!user) {
+    return done(new Error('User not found'));
   }
-  // If we can’t find the user, error or pass null
-  return done(new Error('User not found'));
+  done(null, user);
 });
 
-module.exports = passport; // or export default passport for ESM
+module.exports = passport;

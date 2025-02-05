@@ -6,6 +6,7 @@ import { Helmet } from './modules/helmet';
 import { Nunjucks } from './modules/nunjucks';
 import { PropertiesVolume } from './modules/properties-volume';
 
+import axios from 'axios';
 import * as bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import express from 'express';
@@ -64,24 +65,31 @@ function ensureAuthenticated(req: express.Request, res: express.Response, next: 
   res.redirect('/login'); // Redirect to login if not authenticated
 }
 
-app.post('/login', (req, res, next) => {
-  passport.authenticate('local', (err: never, user: Express.User) => {
-    if (err) {
-      return next(err);
-    }
-    if (!user) {
-      return res.render('login', {
-        error: 'Invalid username or password.',
-        username: req.body.username,
-      });
-    }
-    req.logIn(user, loginErr => {
-      if (loginErr) {
-        return next(loginErr);
+app.post('/login', async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+
+    // Forward request to the Spring Boot backend
+    await axios.post('http://localhost:4550/login/chat', { username, password });
+
+    // Simulate authentication in Express by logging in the user
+    req.login({ username }, (err) => {
+      if (err) {
+        return next(err);
       }
-      return res.redirect('/chat');
+      return res.redirect('/chat'); // Redirect to chat after successful login
     });
-  })(req, res, next);
+  } catch (error: any) {
+    let errorMessage = 'Invalid username or password.';
+    if (error.response?.data) {
+      errorMessage = error.response.data;
+    }
+
+    // Ensure `username` is defined before using it
+    const { username } = req.body;
+
+    return res.render('login', { error: errorMessage, username });
+  }
 });
 
 app.get('/logout', (req, res) => {
