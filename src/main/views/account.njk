@@ -197,7 +197,12 @@
           <span class="govuk-visually-hidden">Error:</span> {{ errors.password }}
         </span>
       {% endif %}
-      <button type="button" class="govuk-button govuk-button--secondary toggle-button" data-module="govuk-button" aria-expanded="false">
+      <button
+        type="button"
+        class="govuk-button govuk-button--secondary govuk-button-password--secondary toggle-button"
+        data-target="password"
+        data-module="govuk-button"
+        aria-expanded="false">
         Show
       </button>
 
@@ -216,7 +221,12 @@
           <span class="govuk-visually-hidden">Error:</span> {{ errors.confirmPassword }}
         </span>
       {% endif %}
-      <button type="button" class="govuk-button govuk-button--secondary toggle-button" data-module="govuk-button" aria-expanded="false">
+      <button
+        type="button"
+        class="govuk-button govuk-button--secondary toggle-button"
+        data-target="confirm-password"
+        data-module="govuk-button"
+        aria-expanded="false">
         Show
       </button>
     </div>
