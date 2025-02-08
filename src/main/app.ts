@@ -79,7 +79,7 @@ app.post('/login', async (req, res, next) => {
       }
       return res.redirect('/chat'); // Redirect to chat after successful login
     });
-  } catch (error: any) {
+  } catch (error) {
     let errorMessage = 'Invalid username or password.';
     if (error.response?.data) {
       errorMessage = error.response.data;
@@ -172,11 +172,23 @@ app.post('/forgot-password/resend-otp', (req, res) => {
   res.redirect('/forgot-password/verify-otp');
 });
 
-app.post('/register', (req, res) => {
-  const { username, email, password, confirmPassword, 'date-of-birth-day': day, 'date-of-birth-month': month, 'date-of-birth-year': year } = req.body;
+app.post('/register', async (req, res) => {
+  // Destructure the expected fields from the request body.
+  // Notice that the date-of-birth is split into day, month, and year.
+  const {
+    username,
+    email,
+    password,
+    confirmPassword,
+    'date-of-birth-day': day,
+    'date-of-birth-month': month,
+    'date-of-birth-year': year
+  } = req.body;
 
-  // Validation Errors
+  // Array to hold any validation error messages.
   const errors: string[] = [];
+
+  // Regex to enforce a strong password (minimum 8 characters, one lowercase, one uppercase, one digit, one special character)
   const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
   // Validate Username
@@ -190,9 +202,11 @@ app.post('/register', (req, res) => {
     errors.push('Enter a valid email address.');
   }
 
-  // Validate Date of Birth
-  const isValidDate = (dateOfBirthDay: string, dateOfBirthMonth: string, dateOfBirthYear: string): boolean => {
-    const date = new Date(`${dateOfBirthYear}-${dateOfBirthMonth}-${dateOfBirthDay}`);
+  // Helper function to validate date of birth
+  const isValidDate = (dobDay: string, dobMonth: string, dobYear: string): boolean => {
+    // Ensure day and month are two digits (e.g. "05" instead of "5")
+    const dateStr = `${dobYear}-${dobMonth.padStart(2, '0')}-${dobDay.padStart(2, '0')}`;
+    const date = new Date(dateStr);
     return !isNaN(date.getTime()) && date < new Date();
   };
 
@@ -205,12 +219,12 @@ app.post('/register', (req, res) => {
     errors.push('Password must meet the criteria.');
   }
 
-  // Confirm Password Match
+  // Check if the passwords match
   if (password !== confirmPassword) {
     errors.push('Passwords do not match.');
   }
 
-  // If there are validation errors, re-render the form with error messages
+  // If there are validation errors, re-render the registration page with error messages
   if (errors.length > 0) {
     return res.render('register', {
       errors,
@@ -222,9 +236,34 @@ app.post('/register', (req, res) => {
     });
   }
 
-  // Simulate registration success
-  console.log('User registered successfully:', { username, email });
-  res.redirect('/login?created=true');
+  // Convert day, month, and year into the expected "YYYY-MM-DD" format
+  const dateOfBirth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+  try {
+    // Call the Spring Boot backend's register endpoint
+    const response = await axios.post('http://localhost:4550/account/register', {
+      username,
+      email,
+      password,
+      confirmPassword,
+      dateOfBirth
+    });
+
+    console.log('User registered successfully in backend:', response.data);
+    // Redirect to the login page (or another page) upon successful registration
+    res.redirect('/login?created=true');
+  } catch (error) {
+    console.error('Error during backend registration:', error);
+    errors.push('An error occurred during registration. Please try again later.');
+    return res.render('register', {
+      errors,
+      username,
+      email,
+      day,
+      month,
+      year,
+    });
+  }
 });
 
 app.post('/account/update', (req, res) => {
