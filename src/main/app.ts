@@ -65,32 +65,65 @@ function ensureAuthenticated(req: express.Request, res: express.Response, next: 
   res.redirect('/login'); // Redirect to login if not authenticated
 }
 
+async function getCsrfToken(): Promise<string> {
+  const csrfResponse = await axios.get('http://localhost:4550/csrf', { withCredentials: true });
+  console.log('Retrieved CSRF token:', csrfResponse.data.csrfToken);
+  return csrfResponse.data.csrfToken;
+}
+
 app.post('/login', async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
-    // Forward request to the Spring Boot backend
-    await axios.post('http://localhost:4550/login/chat', { username, password });
+    // Retrieve CSRF token and cookie from the /csrf endpoint
+    const csrfResponse = await axios.get('http://localhost:4550/csrf', { withCredentials: true });
+    const csrfToken = csrfResponse.data.csrfToken;
+    const csrfCookieHeader = csrfResponse.headers['set-cookie'];
+    const csrfCookie = Array.isArray(csrfCookieHeader)
+      ? csrfCookieHeader.join('; ')
+      : csrfCookieHeader;
+    console.log('Retrieved CSRF token:', csrfToken);
+    console.log('Retrieved CSRF cookie:', csrfCookie);
 
-    // Simulate authentication in Express by logging in the user
-    req.login({ username }, (err) => {
+    // Use these values in your login POST:
+    const response = await axios.post(
+      'http://localhost:4550/login/chat',
+      { username, password },
+      {
+        withCredentials: true,
+        headers: {
+          'X-XSRF-TOKEN': csrfToken,
+          Cookie: csrfCookie
+        }
+      }
+    );
+
+    // Log the Set-Cookie header from the login response.
+    console.log('Login response headers:', response.headers);
+    const setCookieHeader = response.headers['set-cookie'];
+    const loginCookie = Array.isArray(setCookieHeader)
+      ? setCookieHeader.join('; ')
+      : setCookieHeader;
+    console.log('Login Set-Cookie header:', loginCookie);
+
+    // Save the Spring Boot session cookie in the Express session.
+    (req.session as any).springSessionCookie = loginCookie;
+    console.log('Stored springSessionCookie:', (req.session as any).springSessionCookie);
+
+    // Authenticate the user in Express as well.
+    req.login({ username }, err => {
       if (err) {
         return next(err);
       }
-      return res.redirect('/chat'); // Redirect to chat after successful login
+      return res.redirect('/chat');
     });
-  } catch (error) {
-    let errorMessage = 'Invalid username or password.';
-    if (error.response?.data) {
-      errorMessage = error.response.data;
-    }
-
-    // Ensure `username` is defined before using it
-    const { username } = req.body;
-
-    return res.render('login', { error: errorMessage, username });
+  } catch (error: any) {
+    console.error('Full login error:', error.response);
+    const errorMessage = error.response?.data || 'Invalid username or password.';
+    return res.render('login', { error: errorMessage, username: req.body.username });
   }
 });
+
 
 app.get('/logout', (req, res) => {
   req.logout(err => {
@@ -143,7 +176,8 @@ app.post('/forgot-password/reset-password', (req, res) => {
   const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   if (!passwordCriteriaRegex.test(password)) {
     return res.render('reset-password', {
-      error: 'Your password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.',
+      error:
+        'Your password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.',
     });
   }
 
@@ -182,7 +216,7 @@ app.post('/register', async (req, res) => {
     confirmPassword,
     'date-of-birth-day': day,
     'date-of-birth-month': month,
-    'date-of-birth-year': year
+    'date-of-birth-year': year,
   } = req.body;
 
   // Array to hold any validation error messages.
@@ -246,7 +280,7 @@ app.post('/register', async (req, res) => {
       email,
       password,
       confirmPassword,
-      dateOfBirth
+      dateOfBirth,
     });
 
     console.log('User registered successfully in backend:', response.data);
@@ -266,50 +300,43 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.post('/account/update', (req, res) => {
-  const { username, email, password, confirmPassword, 'date-of-birth-day': day, 'date-of-birth-month': month, 'date-of-birth-year': year } = req.body;
+// In your update route:
+app.post('/account/update', async (req, res) => {
+  const {
+    username,
+    email,
+    password,
+    confirmPassword,
+    'date-of-birth-day': day,
+    'date-of-birth-month': month,
+    'date-of-birth-year': year,
+  } = req.body;
 
-  // Validation Errors
-  const errors: string[] = [];
-  const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  const dateOfBirth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  const payload = { email, username, dateOfBirth, password, confirmPassword };
 
-  // Validate Username
-  if (!username || username.trim() === '') {
-    errors.push('Username is required.');
-  }
+  try {
+    // Retrieve the CSRF token from the backend
+    const csrfToken = await getCsrfToken();
 
-  // Validate Email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !emailRegex.test(email)) {
-    errors.push('Enter a valid email address.');
-  }
+    // Retrieve the Spring Boot session cookie stored during login
+    const cookieHeader = (req.session as any).springSessionCookie || '';
 
-  // Validate Date of Birth
-  const isValidDate = (dateOfBirthDay: string, dateOfBirthMonth: string, dateOfBirthYear: string): boolean => {
-    const date = new Date(`${dateOfBirthYear}-${dateOfBirthMonth}-${dateOfBirthDay}`);
-    return !isNaN(date.getTime()) && date < new Date();
-  };
-
-  if (!day || !month || !year || !isValidDate(day, month, year)) {
-    errors.push('Enter a valid date of birth.');
-  }
-
-  // Validate Password if provided
-  if (password) {
-    if (!passwordCriteriaRegex.test(password)) {
-      errors.push('Password must meet the criteria.');
-    }
-
-    // Confirm Password Match
-    if (password !== confirmPassword) {
-      errors.push('Passwords do not match.');
-    }
-  }
-
-  // If there are validation errors, re-render the form with error messages
-  if (errors.length > 0) {
+    // Make the update request including the CSRF token header
+    const response = await axios.post('http://localhost:4550/account/update', payload, {
+      withCredentials: true,
+      headers: {
+        // Include the CSRF token in the header (the name expected by CookieCsrfTokenRepository is X-XSRF-TOKEN)
+        'X-XSRF-TOKEN': csrfToken,
+        Cookie: cookieHeader,
+      },
+    });
+    console.log('Account updated successfully in backend:', response.data);
+    return res.redirect('/account?updated=true');
+  } catch (error) {
+    console.error('Error updating account in backend:', error);
     return res.render('account', {
-      errors,
+      errors: ['An error occurred during account update. Please try again later.'],
       username,
       email,
       day,
@@ -317,17 +344,13 @@ app.post('/account/update', (req, res) => {
       year,
     });
   }
-
-  // Simulate account update success
-  console.log('Account updated successfully:', { username, email, day, month, year });
-  res.redirect('/account?updated=true');
 });
 
 app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
-app.get('/login', function(req, res) {
+app.get('/login', function (req, res) {
   const { created, passwordReset } = req.query;
 
   res.render('login', {
@@ -340,7 +363,7 @@ app.get('/forgot-password', (req, res) => {
   res.render('forgot-password');
 });
 
-app.get('/forgot-password/verify-otp', function(req, res) {
+app.get('/forgot-password/verify-otp', function (req, res) {
   const { sent } = req.query;
 
   res.render('verify-otp', {

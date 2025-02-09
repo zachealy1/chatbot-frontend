@@ -20,5 +20,9 @@
       "routes/*": ["routes/*"]
     }
   },
-  "exclude": ["**/*.test.ts", "**/codecept.conf.ts", "**/__mocks__/*"]
+  "exclude": ["**/*.test.ts", "**/codecept.conf.ts", "**/__mocks__/*"],
+  "include": [
+    "src/**/*",
+    "session.d.ts"
+  ]
 }
