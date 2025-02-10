@@ -3850,6 +3850,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/js-cookie@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "@types/js-cookie@npm:3.0.6"
+  checksum: 272d551687547445cb210213c73e72e0e5d58ad73e2e444a65d688b8ff9425529779ee0cd6492aaa1f070161916d4254ef2b1a76d64179100437f60749d094ef
+  languageName: node
+  linkType: hard
+
 "@types/json-schema@npm:*, @types/json-schema@npm:^7.0.8, @types/json-schema@npm:^7.0.9":
   version: 7.0.12
   resolution: "@types/json-schema@npm:7.0.12"
@@ -4714,6 +4721,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"agent-base@npm:^7.1.3":
+  version: 7.1.3
+  resolution: "agent-base@npm:7.1.3"
+  checksum: 87bb7ee54f5ecf0ccbfcba0b07473885c43ecd76cb29a8db17d6137a19d9f9cd443a2a7c5fd8a3f24d58ad8145f9eb49116344a66b107e1aeab82cf2383f4753
+  languageName: node
+  linkType: hard
+
 "agentkeepalive@npm:^4.2.1":
   version: 4.5.0
   resolution: "agentkeepalive@npm:4.5.0"
@@ -5174,6 +5188,18 @@ __metadata:
   version: 4.8.4
   resolution: "axe-core@npm:4.8.4"
   checksum: 644da2fec17bcf6f834edaab1baa5a75a9a3ee370c323215c73da6d7e45fac11d01470d92d0a3d5f26695e15c1d9b781733dfbe1fe09d505076c58f09ed74e02
+  languageName: node
+  linkType: hard
+
+"axios-cookiejar-support@npm:^5.0.5":
+  version: 5.0.5
+  resolution: "axios-cookiejar-support@npm:5.0.5"
+  dependencies:
+    http-cookie-agent: ^6.0.8
+  peerDependencies:
+    axios: ">=0.20.0"
+    tough-cookie: ">=4.0.0"
+  checksum: 4d3acdef40ee54dd76941c5551de61b5cd71dc7a4be75a918a77dd52905758b84d9b43e3c56bd92a4e281f3be2e799e9ec1491fbf5178bb1aa1c5e4c15f2164e
   languageName: node
   linkType: hard
 
@@ -9340,6 +9366,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"http-cookie-agent@npm:^6.0.8":
+  version: 6.0.8
+  resolution: "http-cookie-agent@npm:6.0.8"
+  dependencies:
+    agent-base: ^7.1.3
+  peerDependencies:
+    tough-cookie: ^4.0.0 || ^5.0.0
+    undici: ^5.11.0 || ^6.0.0
+  peerDependenciesMeta:
+    undici:
+      optional: true
+  checksum: aa0c3133f5c8c19f1535ffd16a3681efd6f28d026226369559c85f2e9ac79ff8cdfe9a232fd72bb47bd08b619de9f9588708df43e3f104c38890af1cc7f4a5db
+  languageName: node
+  linkType: hard
+
 "http-errors@npm:2.0.0":
   version: 2.0.0
   resolution: "http-errors@npm:2.0.0"
@@ -10644,6 +10685,13 @@ __metadata:
     html-beautify: js/bin/html-beautify.js
     js-beautify: js/bin/js-beautify.js
   checksum: 92512b8dcc54330fe075569fd0226a1960da3fbb68f91e35dbfb110cc2b85e53e3ef17878c8be88b0888277bc5d51b1a692d72a00142d653ce7a8cbd48c66ee0
+  languageName: node
+  linkType: hard
+
+"js-cookie@npm:^3.0.5":
+  version: 3.0.5
+  resolution: "js-cookie@npm:3.0.5"
+  checksum: 2dbd2809c6180fbcf060c6957cb82dbb47edae0ead6bd71cbeedf448aa6b6923115003b995f7d3e3077bfe2cb76295ea6b584eb7196cca8ba0a09f389f64967a
   languageName: node
   linkType: hard
 
@@ -13987,6 +14035,7 @@ __metadata:
     "@types/glob": ^8.1.0
     "@types/helmet": ^4.0.0
     "@types/jest": ^29.5.4
+    "@types/js-cookie": ^3.0.6
     "@types/lodash": ^4.14.197
     "@types/node": ^20.0.0
     "@types/nunjucks": ^3.2.3
@@ -13999,6 +14048,7 @@ __metadata:
     "@typescript-eslint/parser": ^7.0.0
     applicationinsights: ^3.2.1
     axios: ^1.4.0
+    axios-cookiejar-support: ^5.0.5
     axios-debug-log: ^1.0.0
     babel-loader: ^9.1.3
     body-parser: ^1.20.2
@@ -14026,6 +14076,7 @@ __metadata:
     jest: ^29.6.2
     jest-html-reporter: ^3.10.1
     jquery: ^3.7.0
+    js-cookie: ^3.0.5
     lint-staged: ^15.0.0
     lodash: ^4.17.21
     mini-css-extract-plugin: ^2.7.6
@@ -14050,6 +14101,7 @@ __metadata:
     stylelint-config-standard: ^36.0.0
     stylelint-config-standard-scss: ^13.0.0
     supertest: ^7.0.0
+    tough-cookie: ^5.1.1
     ts-jest: ^29.1.1
     ts-loader: ^9.4.4
     ts-node: ^10.9.1
@@ -15331,6 +15383,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tldts-core@npm:^6.1.77":
+  version: 6.1.77
+  resolution: "tldts-core@npm:6.1.77"
+  checksum: 7af3ab163d130172335cf024531b971ddf0ec327dd36f4b5cc090b252b8f7677be6a0e48b2de9d78b4a1d171ac85ed3a12610fe8d562dffd8720e0afebb1b7e4
+  languageName: node
+  linkType: hard
+
+"tldts@npm:^6.1.32":
+  version: 6.1.77
+  resolution: "tldts@npm:6.1.77"
+  dependencies:
+    tldts-core: ^6.1.77
+  bin:
+    tldts: bin/cli.js
+  checksum: adbadd1142724b0da9018098653c60fa546934f5f84b301a17d2071e3244345d56fc7f115fe94e5194f909aaabbcc105d741b3d8725582a266245cd0d84a1e28
+  languageName: node
+  linkType: hard
+
 "tmp@npm:^0.0.33":
   version: 0.0.33
   resolution: "tmp@npm:0.0.33"
@@ -15385,6 +15455,15 @@ __metadata:
   bin:
     nodetouch: ./bin/nodetouch.js
   checksum: e0be589cb5b0e6dbfce6e7e077d4a0d5f0aba558ef769c6d9c33f635e00d73d5be49da6f8631db302ee073919d82b5b7f56da2987feb28765c95a7673af68647
+  languageName: node
+  linkType: hard
+
+"tough-cookie@npm:^5.1.1":
+  version: 5.1.1
+  resolution: "tough-cookie@npm:5.1.1"
+  dependencies:
+    tldts: ^6.1.32
+  checksum: 051d2d09df12448642928de9e1da7c296ae1019c6531e87f45f51fd29e8f235efbe94ef6502b37e874df72047c13a34da8816f2c05c7c358ead27ef4fbbd8117
   languageName: node
   linkType: hard
 

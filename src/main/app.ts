@@ -7,18 +7,18 @@ import { Nunjucks } from './modules/nunjucks';
 import { PropertiesVolume } from './modules/properties-volume';
 
 import axios from 'axios';
+import { wrapper } from 'axios-cookiejar-support';
 import * as bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import express from 'express';
-import session from 'express-session';
 import { glob } from 'glob';
 import passport from 'passport';
 import favicon from 'serve-favicon';
+import { CookieJar } from 'tough-cookie';
 
 require('../../config/passport');
 
 const { setupDev } = require('./development');
-
 const { Logger } = require('@hmcts/nodejs-logging');
 
 const env = process.env.NODE_ENV || 'development';
@@ -47,13 +47,19 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(
-  session({
-    secret: 'yourSecretKeyHere',
-    resave: false,
-    saveUninitialized: false,
-  })
-);
+const session = require('express-session');
+
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,             // Only save the session if it is modified.
+  saveUninitialized: false,  // Do not create a session until something is stored.
+  cookie: {
+    httpOnly: true,
+    secure: false,          // Set to true if using HTTPS.
+    path: '/'
+    // You may also need to set domain if you're working with subdomains.
+  }
+}));
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -65,72 +71,74 @@ function ensureAuthenticated(req: express.Request, res: express.Response, next: 
   res.redirect('/login'); // Redirect to login if not authenticated
 }
 
-async function getCsrfToken(): Promise<string> {
-  const csrfResponse = await axios.get('http://localhost:4550/csrf', { withCredentials: true });
-  console.log('Retrieved CSRF token:', csrfResponse.data.csrfToken);
-  return csrfResponse.data.csrfToken;
-}
-
 app.post('/login', async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
-    // Retrieve CSRF token and cookie from the /csrf endpoint
+    // Retrieve the CSRF token from the Spring Boot backend.
     const csrfResponse = await axios.get('http://localhost:4550/csrf', { withCredentials: true });
     const csrfToken = csrfResponse.data.csrfToken;
+    console.log('Retrieved CSRF token:', csrfToken);
+
+    // Capture the cookie from the /csrf response.
     const csrfCookieHeader = csrfResponse.headers['set-cookie'];
     const csrfCookie = Array.isArray(csrfCookieHeader)
       ? csrfCookieHeader.join('; ')
       : csrfCookieHeader;
-    console.log('Retrieved CSRF token:', csrfToken);
     console.log('Retrieved CSRF cookie:', csrfCookie);
 
-    // Use these values in your login POST:
-    const response = await axios.post(
+    // Send the login request including the CSRF token and cookie.
+    const loginResponse = await axios.post(
       'http://localhost:4550/login/chat',
       { username, password },
       {
         withCredentials: true,
         headers: {
           'X-XSRF-TOKEN': csrfToken,
-          Cookie: csrfCookie
+          Cookie: csrfCookie,
         }
       }
     );
 
-    // Log the Set-Cookie header from the login response.
-    console.log('Login response headers:', response.headers);
-    const setCookieHeader = response.headers['set-cookie'];
+    console.log('Login response headers:', loginResponse.headers);
+    const setCookieHeader = loginResponse.headers['set-cookie'];
     const loginCookie = Array.isArray(setCookieHeader)
       ? setCookieHeader.join('; ')
       : setCookieHeader;
     console.log('Login Set-Cookie header:', loginCookie);
 
-    // Save the Spring Boot session cookie in the Express session.
+    // Save both the Spring Boot session cookie and the CSRF token in the Express session.
     (req.session as any).springSessionCookie = loginCookie;
-    console.log('Stored springSessionCookie:', (req.session as any).springSessionCookie);
+    (req.session as any).csrfToken = csrfToken;
+    console.log('Stored springSessionCookie in session:', loginCookie);
+    console.log('Stored csrfToken in session:', csrfToken);
 
-    // Authenticate the user in Express as well.
-    req.login({ username }, err => {
+    // Explicitly save the session.
+    req.session.save((err: any) => {
       if (err) {
-        return next(err);
+        console.error('Error saving session:', err);
+      } else {
+        console.log('Session saved successfully with springSessionCookie and csrfToken.');
       }
-      return res.redirect('/chat');
+      req.login({ username, springSessionCookie: loginCookie, csrfToken }, err => {
+        if (err) {
+          return next(err);
+        }
+        return res.redirect('/chat');
+      });
     });
   } catch (error: any) {
-    console.error('Full login error:', error.response);
+    console.error('Full login error:', error.response || error.message);
     const errorMessage = error.response?.data || 'Invalid username or password.';
     return res.render('login', { error: errorMessage, username: req.body.username });
   }
 });
-
 
 app.get('/logout', (req, res) => {
   req.logout(err => {
     if (err) {
       return res.status(500).send('Failed to logout');
     }
-
     req.session.destroy(() => {
       res.redirect('/login');
     });
@@ -206,9 +214,11 @@ app.post('/forgot-password/resend-otp', (req, res) => {
   res.redirect('/forgot-password/verify-otp');
 });
 
+// -------------------------
+// UPDATED /register ROUTE
+// -------------------------
 app.post('/register', async (req, res) => {
   // Destructure the expected fields from the request body.
-  // Notice that the date-of-birth is split into day, month, and year.
   const {
     username,
     email,
@@ -219,26 +229,24 @@ app.post('/register', async (req, res) => {
     'date-of-birth-year': year,
   } = req.body;
 
-  // Array to hold any validation error messages.
   const errors: string[] = [];
 
-  // Regex to enforce a strong password (minimum 8 characters, one lowercase, one uppercase, one digit, one special character)
+  // Regex to enforce a strong password.
   const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-  // Validate Username
+  // Validate Username.
   if (!username || username.trim() === '') {
     errors.push('Username is required.');
   }
 
-  // Validate Email
+  // Validate Email.
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
     errors.push('Enter a valid email address.');
   }
 
-  // Helper function to validate date of birth
+  // Helper function to validate date of birth.
   const isValidDate = (dobDay: string, dobMonth: string, dobYear: string): boolean => {
-    // Ensure day and month are two digits (e.g. "05" instead of "5")
     const dateStr = `${dobYear}-${dobMonth.padStart(2, '0')}-${dobDay.padStart(2, '0')}`;
     const date = new Date(dateStr);
     return !isNaN(date.getTime()) && date < new Date();
@@ -248,17 +256,17 @@ app.post('/register', async (req, res) => {
     errors.push('Enter a valid date of birth.');
   }
 
-  // Validate Password
+  // Validate Password.
   if (!password || !passwordCriteriaRegex.test(password)) {
     errors.push('Password must meet the criteria.');
   }
 
-  // Check if the passwords match
+  // Check if the passwords match.
   if (password !== confirmPassword) {
     errors.push('Passwords do not match.');
   }
 
-  // If there are validation errors, re-render the registration page with error messages
+  // If there are validation errors, re-render the registration page with error messages.
   if (errors.length > 0) {
     return res.render('register', {
       errors,
@@ -270,21 +278,38 @@ app.post('/register', async (req, res) => {
     });
   }
 
-  // Convert day, month, and year into the expected "YYYY-MM-DD" format
+  // Convert day, month, and year into the expected "YYYY-MM-DD" format.
   const dateOfBirth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 
   try {
-    // Call the Spring Boot backend's register endpoint
-    const response = await axios.post('http://localhost:4550/account/register', {
+    // Create a cookie jar and an axios client that supports cookies.
+    const jar = new CookieJar();
+    const client = wrapper(axios.create({
+      jar,
+      withCredentials: true,
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN',
+    }));
+
+    // Request the CSRF token from the backend.
+    const csrfResponse = await client.get('http://localhost:4550/csrf');
+    const csrfToken = csrfResponse.data.csrfToken;
+    console.log('Retrieved CSRF token:', csrfToken);
+
+    // Send the registration POST request using the response body token.
+    const response = await client.post('http://localhost:4550/account/register', {
       username,
       email,
       password,
       confirmPassword,
       dateOfBirth,
+    }, {
+      headers: {
+        'X-XSRF-TOKEN': csrfToken,
+      }
     });
 
     console.log('User registered successfully in backend:', response.data);
-    // Redirect to the login page (or another page) upon successful registration
     res.redirect('/login?created=true');
   } catch (error) {
     console.error('Error during backend registration:', error);
@@ -300,7 +325,6 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// In your update route:
 app.post('/account/update', async (req, res) => {
   const {
     username,
@@ -315,23 +339,48 @@ app.post('/account/update', async (req, res) => {
   const dateOfBirth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   const payload = { email, username, dateOfBirth, password, confirmPassword };
 
+  // Retrieve the stored Spring Boot session cookie from req.user or req.session.
+  const storedCookie =
+    (req.user as any)?.springSessionCookie ||
+    (req.session as any)?.springSessionCookie ||
+    '';
+
+  if (!storedCookie) {
+    return res.status(401).render('account', {
+      errors: ['Session expired or invalid. Please log in again.'],
+      username,
+      email,
+      day,
+      month,
+      year,
+    });
+  }
+
   try {
-    // Retrieve the CSRF token from the backend
-    const csrfToken = await getCsrfToken();
+    // Create a cookie jar and add the stored session cookie.
+    const jar = new CookieJar();
+    jar.setCookieSync(storedCookie, 'http://localhost:4550');
 
-    // Retrieve the Spring Boot session cookie stored during login
-    const cookieHeader = (req.session as any).springSessionCookie || '';
-
-    // Make the update request including the CSRF token header
-    const response = await axios.post('http://localhost:4550/account/update', payload, {
+    // Create an axios client with cookie jar support.
+    const client = wrapper(axios.create({
+      jar,
       withCredentials: true,
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN',
+    }));
+
+    // Request the CSRF token from the backend.
+    const csrfResponse = await client.get('http://localhost:4550/csrf');
+    const csrfToken = csrfResponse.data.csrfToken;
+    console.log('Retrieved CSRF token for update:', csrfToken);
+
+    // Send the account update POST request with the CSRF token.
+    await client.post('http://localhost:4550/account/update', payload, {
       headers: {
-        // Include the CSRF token in the header (the name expected by CookieCsrfTokenRepository is X-XSRF-TOKEN)
         'X-XSRF-TOKEN': csrfToken,
-        Cookie: cookieHeader,
       },
     });
-    console.log('Account updated successfully in backend:', response.data);
+
     return res.redirect('/account?updated=true');
   } catch (error) {
     console.error('Error updating account in backend:', error);
@@ -352,9 +401,8 @@ app.get('/', (req, res) => {
 
 app.get('/login', function (req, res) {
   const { created, passwordReset } = req.query;
-
   res.render('login', {
-    created: created === 'true', // Use 'created' to match the template
+    created: created === 'true',
     passwordReset: passwordReset === 'true',
   });
 });
@@ -365,7 +413,6 @@ app.get('/forgot-password', (req, res) => {
 
 app.get('/forgot-password/verify-otp', function (req, res) {
   const { sent } = req.query;
-
   res.render('verify-otp', {
     sent: sent === 'true',
   });
@@ -408,10 +455,8 @@ app.use((req, res) => {
 
 app.use((err: HTTPError, req: express.Request, res: express.Response) => {
   logger.error(`${err.stack || err}`);
-
   res.locals.message = err.message;
   res.locals.error = developmentMode ? err : {};
-
   res.status(err.status || 500);
   res.render('error');
 });
