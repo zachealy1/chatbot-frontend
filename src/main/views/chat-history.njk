@@ -43,7 +43,11 @@
                   {
                     href: "/delete-chat-history?chatId=" ~ chat.id,
                     text: "Delete",
-                    visuallyHiddenText: "Delete this chat history"
+                    visuallyHiddenText: "Delete this chat history",
+                    attributes: {
+                    class: "delete-chat",
+                    "data-chat-id": chat.id
+                  }
                   }
                 ]
               }

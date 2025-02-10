@@ -534,6 +534,56 @@ app.get('/chat-history', async (req, res) => {
   }
 });
 
+app.get('/delete-chat-history', async (req, res) => {
+  try {
+    // Retrieve the chatId from the query parameters.
+    const chatId = req.query.chatId;
+    if (!chatId) {
+      return res.status(400).send('Missing chatId parameter.');
+    }
+
+    // Retrieve the stored Spring Boot session cookie from req.user or req.session.
+    const storedCookie =
+      (req.user as any)?.springSessionCookie ||
+      (req.session as any)?.springSessionCookie ||
+      '';
+    if (!storedCookie) {
+      return res.status(401).send('User not authenticated or session expired.');
+    }
+
+    // Create a cookie jar and set the stored cookie for the backend.
+    const jar = new CookieJar();
+    jar.setCookieSync(storedCookie, 'http://localhost:4550');
+
+    // Create an axios client with cookie jar support and proper CSRF configuration.
+    const client = wrapper(axios.create({
+      jar,
+      withCredentials: true,
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN'
+    }));
+
+    // (Optional) Retrieve the CSRF token from the backend.
+    const csrfResponse = await client.get('http://localhost:4550/csrf');
+    const csrfToken = csrfResponse.data.csrfToken;
+    console.log('Retrieved CSRF token for delete-chat-history:', csrfToken);
+
+    // Call the backend DELETE endpoint.
+    // Assuming the backend delete route is at: DELETE http://localhost:4550/chat/chats/{chatId}
+    await client.delete(`http://localhost:4550/chat/chats/${chatId}`, {
+      headers: {
+        'X-XSRF-TOKEN': csrfToken
+      }
+    });
+
+    // Redirect back to the chat history page (optionally with a query parameter to show a success message).
+    return res.redirect('/chat-history?deleted=true');
+  } catch (error) {
+    console.error('Error deleting chat:', error);
+    return res.status(500).send('An error occurred while deleting the chat.');
+  }
+});
+
 app.get('/contact-support', async (req, res) => {
   try {
     // Retrieve the Spring Boot session cookie from your session or user object.
