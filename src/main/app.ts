@@ -147,27 +147,31 @@ app.get('/logout', (req, res) => {
 });
 
 app.post('/forgot-password/enter-email', async (req, res) => {
-  // Extract the email from the request body.
+  // Extract the email from the request body
   const { email } = req.body;
+  console.log('[ForgotPassword] Received email:', email);
 
-  // Basic local validation for the email format.
+  // Basic local validation for the email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
+    console.log('[ForgotPassword] Invalid or missing email:', email);
     return res.render('forgot-password', {
-      errors: [ 'Please enter a valid email address.' ],
-      email,  // so the user doesn't lose what they typed
+      errors: ['Please enter a valid email address.'],
+      email, // so the user doesn't lose what they typed
     });
   }
 
   try {
     // 1) Create a cookie jar & an axios client with CSRF config
     const jar = new CookieJar();
-    const client = wrapper(axios.create({
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN',
-    }));
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     // 2) Request the CSRF token from the backend
     const csrfResponse = await client.get('http://localhost:4550/csrf');
@@ -188,13 +192,15 @@ app.post('/forgot-password/enter-email', async (req, res) => {
 
     console.log('[ForgotPassword] Forgot-password call succeeded:', response.data);
 
-    // 4) If successful, redirect to the next step (e.g., OTP entry)
-    return res.redirect('/forgot-password/verify-otp');
+    // 4) Store the email in session so we can retrieve it when verifying OTP
+    (req.session as any).email = email;
 
+    // 5) If successful, redirect to the next step (e.g., OTP entry)
+    return res.redirect('/forgot-password/verify-otp');
   } catch (error) {
     console.error('[ForgotPassword] Error during backend forgot-password:', error);
 
-    // If the backend returned a specific error message, extract it:
+    // If the backend returned a specific error message, extract it
     let errorMsg = 'An error occurred during the forgot-password process. Please try again later.';
     if (error.response && error.response.data) {
       errorMsg = error.response.data;
@@ -202,7 +208,7 @@ app.post('/forgot-password/enter-email', async (req, res) => {
 
     // Re-render the forgot-password screen with an error
     return res.render('forgot-password', {
-      errors: [ errorMsg ],
+      errors: [errorMsg],
       email,
     });
   }
@@ -234,17 +240,61 @@ app.post('/forgot-password/reset-password', (req, res) => {
   res.redirect('/login?passwordReset=true');
 });
 
-app.post('/forgot-password/verify-otp', (req, res) => {
+app.post('/forgot-password/verify-otp', async (req, res) => {
   const { oneTimePassword } = req.body;
-  const expectedOTP = '123456'; // Replace with your actual logic
+  const email = (req.session as any).email;
 
-  if (!oneTimePassword || oneTimePassword !== expectedOTP) {
+  console.log('[ForgotPassword] Received OTP:', oneTimePassword);
+  console.log('[ForgotPassword] Using email from session:', email);
+
+  // 2. Validate that both are present
+  if (!email) {
     return res.render('verify-otp', {
-      error: 'The one-time password you entered is incorrect. Please try again.',
+      error: 'No email found in session. Please request a password reset first.',
+    });
+  }
+  if (!oneTimePassword || oneTimePassword.trim() === '') {
+    return res.render('verify-otp', {
+      error: 'Please enter the one-time password (OTP).',
     });
   }
 
-  res.redirect('/forgot-password/reset-password');
+  try {
+    const jar = new CookieJar();
+
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
+
+    const csrfResponse = await client.get('http://localhost:4550/csrf');
+    const csrfToken = csrfResponse.data.csrfToken;
+    console.log('[ForgotPassword] Retrieved CSRF token for verify-otp:', csrfToken);
+
+    await client.post(
+      'http://localhost:4550/forgot-password/verify-otp',
+      { email, otp: oneTimePassword },
+      { headers: { 'X-XSRF-TOKEN': csrfToken } }
+    );
+
+    return res.redirect('/forgot-password/reset-password');
+
+  } catch (error) {
+    console.error('[ForgotPassword] Error calling backend /forgot-password/verify-otp:', error);
+
+    let errorMessage = 'An error occurred while verifying the OTP. Please try again.';
+    if (error.response && error.response.data) {
+      errorMessage = error.response.data;
+    }
+
+    return res.render('verify-otp', {
+      error: errorMessage,
+    });
+  }
 });
 
 app.post('/forgot-password/resend-otp', (req, res) => {
