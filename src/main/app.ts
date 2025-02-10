@@ -425,18 +425,24 @@ app.get('/forgot-password/reset-password', (req, res) => {
 app.get('/register', (req, res) => {
   res.render('register');
 });
+
 app.get('/chat', ensureAuthenticated, (req, res) => {
   res.render('chat');
 });
+
 app.get('/chat-history', ensureAuthenticated, (req, res) => {
   res.render('chat-history');
 });
+
 app.get('/contact-support', ensureAuthenticated, (req, res) => {
   res.render('contact-support');
 });
-app.get('/account', ensureAuthenticated, (req, res) => {
-  res.render('account');
+
+app.get('/account', (req, res) => {
+  const updated = req.query.updated === 'true';
+  res.render('account', { updated });
 });
+
 app.get('/account/update', ensureAuthenticated, (req, res) => {
   res.render('update');
 });
