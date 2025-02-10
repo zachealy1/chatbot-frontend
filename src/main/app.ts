@@ -214,17 +214,17 @@ app.post('/forgot-password/enter-email', async (req, res) => {
   }
 });
 
-app.post('/forgot-password/reset-password', (req, res) => {
+app.post('/forgot-password/reset-password', async (req, res) => {
   const { password, confirmPassword } = req.body;
 
-  // Validate that both passwords match
+  console.log('[ForgotPassword] Received new password & confirmPassword:', password, confirmPassword);
+
   if (password !== confirmPassword) {
     return res.render('reset-password', {
       error: 'Passwords do not match.',
     });
   }
 
-  // Validate password criteria
   const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   if (!passwordCriteriaRegex.test(password)) {
     return res.render('reset-password', {
@@ -233,29 +233,13 @@ app.post('/forgot-password/reset-password', (req, res) => {
     });
   }
 
-  // Simulate updating the password
-  console.log('Password reset successfully for user.');
-
-  // Redirect to success page
-  res.redirect('/login?passwordReset=true');
-});
-
-app.post('/forgot-password/verify-otp', async (req, res) => {
-  const { oneTimePassword } = req.body;
   const email = (req.session as any).email;
+  const otp = (req.session as any).verifiedOtp;
 
-  console.log('[ForgotPassword] Received OTP:', oneTimePassword);
-  console.log('[ForgotPassword] Using email from session:', email);
-
-  // 2. Validate that both are present
-  if (!email) {
-    return res.render('verify-otp', {
-      error: 'No email found in session. Please request a password reset first.',
-    });
-  }
-  if (!oneTimePassword || oneTimePassword.trim() === '') {
-    return res.render('verify-otp', {
-      error: 'Please enter the one-time password (OTP).',
+  if (!email || !otp) {
+    console.log('[ForgotPassword] Missing email or otp in session.');
+    return res.render('reset-password', {
+      error: 'Cannot reset password without a valid email and OTP. Please start again.',
     });
   }
 
@@ -271,16 +255,95 @@ app.post('/forgot-password/verify-otp', async (req, res) => {
       })
     );
 
+    console.log('[ForgotPassword] Requesting CSRF token from /csrf...');
     const csrfResponse = await client.get('http://localhost:4550/csrf');
     const csrfToken = csrfResponse.data.csrfToken;
-    console.log('[ForgotPassword] Retrieved CSRF token for verify-otp:', csrfToken);
+    console.log('[ForgotPassword] Retrieved CSRF token for reset-password:', csrfToken);
 
+    console.log('[ForgotPassword] Sending POST /forgot-password/reset-password to backend...');
+    const response = await client.post(
+      'http://localhost:4550/forgot-password/reset-password',
+      {
+        email,
+        otp,
+        password,
+        confirmPassword
+      },
+      {
+        headers: { 'X-XSRF-TOKEN': csrfToken },
+      }
+    );
+
+    console.log('[ForgotPassword] Password reset call succeeded:', response.data);
+
+    return res.redirect('/login?passwordReset=true');
+
+  } catch (error) {
+    console.error('[ForgotPassword] Error calling backend /forgot-password/reset-password:', error);
+
+    let errorMsg = 'An error occurred while resetting your password. Please try again.';
+    if (error.response && error.response.data) {
+      errorMsg = error.response.data;
+    }
+    console.log('[ForgotPassword] Rendering reset-password with error:', errorMsg);
+
+    return res.render('reset-password', {
+      error: errorMsg,
+    });
+  }
+});
+
+app.post('/forgot-password/verify-otp', async (req, res) => {
+  const { oneTimePassword } = req.body;
+  const email = (req.session as any).email;
+
+  console.log('[ForgotPassword] Received OTP:', oneTimePassword);
+  console.log('[ForgotPassword] Using email from session:', email);
+
+  // Validate that both are present
+  if (!email) {
+    return res.render('verify-otp', {
+      error: 'No email found in session. Please request a password reset first.',
+    });
+  }
+  if (!oneTimePassword || oneTimePassword.trim() === '') {
+    return res.render('verify-otp', {
+      error: 'Please enter the one-time password (OTP).',
+    });
+  }
+
+  try {
+    // 1) Create a cookie jar & axios client for CSRF
+    const jar = new CookieJar();
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
+
+    // 2) Fetch CSRF token from Spring Boot
+    console.log('[ForgotPassword] Requesting CSRF token for verify-otp...');
+    const csrfResponse = await client.get('http://localhost:4550/csrf');
+    const csrfToken = csrfResponse.data.csrfToken;
+    console.log('[ForgotPassword] Retrieved CSRF token:', csrfToken);
+
+    // 3) POST /forgot-password/verify-otp to backend with { email, otp }
+    //    The backend verifies the OTP
     await client.post(
       'http://localhost:4550/forgot-password/verify-otp',
       { email, otp: oneTimePassword },
       { headers: { 'X-XSRF-TOKEN': csrfToken } }
     );
 
+    // 4) If backend call succeeded, store the verified OTP in session
+    //    So we can prove that the user is allowed to reset the password.
+    (req.session as any).verifiedOtp = oneTimePassword;
+    console.log('[ForgotPassword] OTP verified. Storing in session:', (req.session as any).verifiedOtp);
+
+    // 5) Redirect to /forgot-password/reset-password
     return res.redirect('/forgot-password/reset-password');
 
   } catch (error) {
@@ -288,7 +351,7 @@ app.post('/forgot-password/verify-otp', async (req, res) => {
 
     let errorMessage = 'An error occurred while verifying the OTP. Please try again.';
     if (error.response && error.response.data) {
-      errorMessage = error.response.data;
+      errorMessage = error.response.data;  // e.g. "OTP incorrect", "OTP expired", etc.
     }
 
     return res.render('verify-otp', {
