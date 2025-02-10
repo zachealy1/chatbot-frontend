@@ -46,8 +46,8 @@
 
 {% block content %}
   {{ govukPanel({
-    titleText: "Contact Support Team",
-    html: "If you need assistance, please call us at <strong>0800 123 456</strong> or email <a href='mailto:support@example.com'>support@example.com</a>."
+    titleText: supportBanner.titleText,
+    html: supportBanner.html | safe
   }) }}
 
   <script src="logout-dev.js"></script>
