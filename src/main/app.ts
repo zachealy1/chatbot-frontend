@@ -146,29 +146,66 @@ app.get('/logout', (req, res) => {
   });
 });
 
-app.post('/forgot-password/enter-email', (req, res) => {
-  const email = req.body.email; // Retrieve the email from the form submission
+app.post('/forgot-password/enter-email', async (req, res) => {
+  // Extract the email from the request body.
+  const { email } = req.body;
 
-  // Basic email validation regex
+  // Basic local validation for the email format.
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
   if (!email || !emailRegex.test(email)) {
-    // If no email or invalid email is provided, re-render the form with an error message
     return res.render('forgot-password', {
-      errors: [
-        {
-          text: 'Please enter a valid email address.',
-          href: '#email',
-        },
-      ],
+      errors: [ 'Please enter a valid email address.' ],
+      email,  // so the user doesn't lose what they typed
     });
   }
 
-  // Simulate email sending logic (replace with your actual logic)
-  console.log(`Sending password reset email to: ${email}`);
+  try {
+    // 1) Create a cookie jar & an axios client with CSRF config
+    const jar = new CookieJar();
+    const client = wrapper(axios.create({
+      jar,
+      withCredentials: true,
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN',
+    }));
 
-  // Redirect to the next step (e.g., a page to enter the code)
-  res.redirect('/forgot-password/verify-otp');
+    // 2) Request the CSRF token from the backend
+    const csrfResponse = await client.get('http://localhost:4550/csrf');
+    const csrfToken = csrfResponse.data.csrfToken;
+    console.log('[ForgotPassword] Retrieved CSRF token:', csrfToken);
+
+    // 3) Make the POST request to the Spring Boot route
+    //    which requires CSRF & possibly does not require authentication
+    const response = await client.post(
+      'http://localhost:4550/forgot-password/enter-email',
+      { email },
+      {
+        headers: {
+          'X-XSRF-TOKEN': csrfToken,
+        },
+      }
+    );
+
+    console.log('[ForgotPassword] Forgot-password call succeeded:', response.data);
+
+    // 4) If successful, redirect to the next step (e.g., OTP entry)
+    return res.redirect('/forgot-password/verify-otp');
+
+  } catch (error) {
+    console.error('[ForgotPassword] Error during backend forgot-password:', error);
+
+    // If the backend returned a specific error message, extract it:
+    let errorMsg = 'An error occurred during the forgot-password process. Please try again later.';
+    if (error.response && error.response.data) {
+      errorMsg = error.response.data;
+    }
+
+    // Re-render the forgot-password screen with an error
+    return res.render('forgot-password', {
+      errors: [ errorMsg ],
+      email,
+    });
+  }
 });
 
 app.post('/forgot-password/reset-password', (req, res) => {
