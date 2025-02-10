@@ -19,6 +19,7 @@ import { CookieJar } from 'tough-cookie';
 require('../../config/passport');
 
 const { setupDev } = require('./development');
+
 const { Logger } = require('@hmcts/nodejs-logging');
 
 const env = process.env.NODE_ENV || 'development';
@@ -485,8 +486,52 @@ app.get('/chat', ensureAuthenticated, (req, res) => {
   res.render('chat');
 });
 
-app.get('/chat-history', ensureAuthenticated, (req, res) => {
-  res.render('chat-history');
+app.get('/chat-history', async (req, res) => {
+  try {
+    // Retrieve the stored Spring Boot session cookie
+    const storedCookie =
+      (req.user as any)?.springSessionCookie ||
+      (req.session as any)?.springSessionCookie ||
+      '';
+
+    if (!storedCookie) {
+      throw new Error('No Spring Boot session cookie found.');
+    }
+
+    // Create a cookie jar and add the stored cookie
+    const jar = new CookieJar();
+    jar.setCookieSync(storedCookie, 'http://localhost:4550');
+
+    // Create an axios client with cookie jar support and CSRF configuration.
+    const client = wrapper(axios.create({
+      jar,
+      withCredentials: true,
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN'
+    }));
+
+    // Retrieve the CSRF token from the backend.
+    const csrfResponse = await client.get('http://localhost:4550/csrf');
+    const csrfToken = csrfResponse.data.csrfToken;
+    console.log('Retrieved CSRF token for chat-history:', csrfToken);
+
+    // Now call the backend endpoint to get the chat history, including the CSRF token in the headers.
+    const chatsResponse = await client.get('http://localhost:4550/chat/chats', {
+      headers: {
+        'X-XSRF-TOKEN': csrfToken
+      }
+    });
+    const chats = chatsResponse.data; // Expected to be an array of chat objects
+
+    // Render the chat history view, passing the chats to the template.
+    res.render('chat-history', { chats });
+  } catch (error) {
+    console.error('Error fetching chat histories:', error);
+    res.render('chat-history', {
+      chats: [],
+      error: 'Unable to load chat history at this time.'
+    });
+  }
 });
 
 app.get('/contact-support', async (req, res) => {
