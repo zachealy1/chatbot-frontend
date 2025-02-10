@@ -165,3 +165,25 @@
   margin-top: 50px;
   margin-bottom: 50px;
 }
+
+.loading-icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.loading-icon-container img {
+  width: 40px;
+  height: 40px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+}
+
+.loading-message-container {
+  background-color: #f3f2f1;
+  color: #0b0c0c;
+}
