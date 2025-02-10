@@ -297,16 +297,66 @@ app.post('/forgot-password/verify-otp', async (req, res) => {
   }
 });
 
-app.post('/forgot-password/resend-otp', (req, res) => {
-  console.log('Resending OTP...');
-  res.redirect('/forgot-password/verify-otp');
+app.post('/forgot-password/resend-otp', async (req, res) => {
+  console.log('[ForgotPassword] Resend OTP requested.');
+
+  const email = (req.session as any).email;
+  console.log('[ForgotPassword] Email from session:', email);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    console.log('[ForgotPassword] Invalid or missing email in session.');
+    return res.render('verify-otp', {
+      error: 'No valid email found. Please start the reset process again.',
+    });
+  }
+
+  try {
+    const jar = new CookieJar();
+
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN'
+      })
+    );
+
+    console.log('[ForgotPassword] Requesting CSRF token from /csrf...');
+    const csrfResponse = await client.get('http://localhost:4550/csrf');
+    const csrfToken = csrfResponse.data.csrfToken;
+    console.log('[ForgotPassword] Retrieved CSRF token for resend-otp:', csrfToken);
+
+    const response = await client.post(
+      'http://localhost:4550/forgot-password/resend-otp',
+      { email },
+      {
+        headers: {
+          'X-XSRF-TOKEN': csrfToken,
+        },
+      }
+    );
+    console.log('[ForgotPassword] Resend-OTP call succeeded:', response.data);
+
+    return res.redirect('/forgot-password/verify-otp');
+
+  } catch (error) {
+    console.error('[ForgotPassword] Error calling backend /forgot-password/resend-otp:', error);
+
+    let errorMsg = 'An error occurred while resending the OTP. Please try again.';
+    if (error.response && error.response.data) {
+      errorMsg = error.response.data;
+    }
+    console.log('[ForgotPassword] Rendering verify-otp with error:', errorMsg);
+
+    return res.render('verify-otp', {
+      error: errorMsg,
+    });
+  }
 });
 
-// -------------------------
-// UPDATED /register ROUTE
-// -------------------------
 app.post('/register', async (req, res) => {
-  // Destructure the expected fields from the request body.
   const {
     username,
     email,
