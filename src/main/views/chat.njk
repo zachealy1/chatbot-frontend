@@ -16,64 +16,73 @@
   {{ govukServiceNavigation({
     serviceName: "HMCTS chatbot",
     navigation: [
-      {
-        href: "/chat",
-        text: "Chat",
-        active: true
-      },
-      {
-        href: "/chat-history",
-        text: "Chat History"
-      },
-      {
-        href: "/contact-support",
-        text: "Contact Support"
-      },
-      {
-        href: "/account",
-        text: "Account"
-      },
-      {
-        href: "/logout",
-        text: "Logout",
-        attributes: {
-        id: "logoutLink"
-      }
-      }
+      { href: "/chat", text: "Chat", active: true },
+      { href: "/chat-history", text: "Chat History" },
+      { href: "/contact-support", text: "Contact Support" },
+      { href: "/account", text: "Account" },
+      { href: "/logout", text: "Logout", attributes: { id: "logoutLink" } }
     ]
   }) }}
 {% endblock %}
 
 {% block content %}
-  <!-- Chat Box -->
-  <div class="govuk-width-container">
-    <div class="govuk-chat-box scrollable-chat-div" id="chat-box">
-      <!-- Existing messages will go here -->
-    </div>
-  </div>
-
-  <!-- Input Section -->
-  <div class="custom-full-width-border">
+  <div
+    id="chat-container"
+    data-chat-id="{{ chatId|default('') }}"
+  >
     <div class="govuk-width-container">
-      <input
-        class="govuk-input"
-        id="chat-input"
-        name="chatInput"
-        type="text"
-        placeholder="Type your message"
-      >
-      <button
-        type="button"
-        class="govuk-button govuk-button-new"
-        id="send-button"
-      >
-        Send
-      </button>
+      <div class="govuk-chat-box scrollable-chat-div" id="chat-box">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="govuk-chat-profile">
+              {% if message.sender == 'user' %}
+                <img
+                  src="/assets/images/user-profile.jpg"
+                  alt="User profile picture"
+                  class="govuk-chat-profile-picture">
+                <span class="govuk-chat-username">You</span>
+              {% else %}
+                <img
+                  src="/assets/images/chatbot-profile.jpg"
+                  alt="Chatbot profile picture"
+                  class="govuk-chat-profile-picture">
+                <span class="govuk-chat-username">Chatbot</span>
+              {% endif %}
+            </div>
+            <div
+              class="govuk-chat-message {% if message.sender == 'user' %}govuk-chat-message--user{% else %}govuk-chat-message--bot{% endif %}">
+              <span class="govuk-visually-hidden">
+                {% if message.sender == 'user' %}User:{% else %}Chatbot:{% endif %}
+              </span>
+              <p>{{ message.message | safe }}</p>
+            </div>
+          {% endfor %}
+        {% else %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Input Section -->
+    <div class="custom-full-width-border">
+      <div class="govuk-width-container">
+        <input
+          class="govuk-input"
+          id="chat-input"
+          name="chatInput"
+          type="text"
+          placeholder="Type your message"
+        >
+        <button
+          type="button"
+          class="govuk-button govuk-button-new"
+          id="send-button"
+        >
+          Send
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- JavaScript -->
   <script src="chat-dev.js"></script>
   <script src="logout-dev.js"></script>
 {% endblock %}
-

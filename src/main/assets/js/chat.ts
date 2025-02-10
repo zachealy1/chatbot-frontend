@@ -5,6 +5,22 @@ import { CookieJar } from 'tough-cookie';
 document.addEventListener('DOMContentLoaded', function () {
   console.log('DOM fully loaded and parsed');
 
+  // 1) Find the container element that holds the data attribute for chatId.
+  const chatContainer = document.getElementById('chat-container');
+  let currentChatId: number | null = null;
+
+  // If chatId is present in the data attribute, parse it as a number.
+  if (chatContainer) {
+    const chatIdAttr = chatContainer.getAttribute('data-chat-id');
+    if (chatIdAttr) {
+      const parsedId = parseInt(chatIdAttr, 10);
+      if (!isNaN(parsedId)) {
+        currentChatId = parsedId;
+        console.log('Loaded existing chatId from data attribute:', currentChatId);
+      }
+    }
+  }
+
   // Create a cookie jar
   const jar = new CookieJar();
 
@@ -29,8 +45,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Function to scroll the chat box to the bottom
   function scrollToBottom(): void {
-    chatBox!.scrollTo(0, chatBox!.scrollHeight);
-    console.log('Scrolling to the bottom of the chat box');
+    if (chatBox) {
+      chatBox.scrollTo(0, chatBox.scrollHeight);
+      console.log('Scrolling to the bottom of the chat box');
+    }
   }
 
   // Function to create and append a chat message (user or bot) with text content
@@ -68,11 +86,17 @@ document.addEventListener('DOMContentLoaded', function () {
     messageContainer.appendChild(messageParagraph);
 
     // Append the profile and message containers to the chat box
-    chatBox!.appendChild(profileContainer);
-    chatBox!.appendChild(messageContainer);
-    scrollToBottom();
+    if (chatBox) {
+      chatBox.appendChild(profileContainer);
+      chatBox.appendChild(messageContainer);
+      scrollToBottom();
+    }
   }
 
+  /**
+   * Creates a placeholder bot message with a loading spinner
+   * and returns the paragraph element so we can update it later.
+   */
   function appendBotMessageWithSpinner(profileImgSrc: string, username: string): HTMLElement {
     // Create a container for the profile
     const profileContainer = document.createElement('div');
@@ -91,12 +115,11 @@ document.addEventListener('DOMContentLoaded', function () {
     usernameSpan.textContent = username;
     profileContainer.appendChild(usernameSpan);
 
-    // Create message container using the exact same classes as a normal bot message.
+    // Create message container
     const messageContainer = document.createElement('div');
     messageContainer.classList.add('govuk-chat-message', 'govuk-chat-message--bot');
-    // Do not add extra classes or inline styles here.
 
-    // Create a visually hidden label for accessibility
+    // Create a visually hidden label
     const visuallyHiddenSpan = document.createElement('span');
     visuallyHiddenSpan.classList.add('govuk-visually-hidden');
     visuallyHiddenSpan.textContent = `${username}:`;
@@ -105,17 +128,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // Create the message paragraph with a spinner image as a placeholder
     const messageParagraph = document.createElement('p');
     const spinner = document.createElement('img');
-    spinner.src = '/assets/images/spinner.gif'; // Ensure this image exists or adjust the path.
+    spinner.src = '/assets/images/spinner.gif'; // Ensure this file exists or adjust path
     spinner.alt = 'Loading...';
     spinner.classList.add('spinner');
     messageParagraph.appendChild(spinner);
+
     messageContainer.appendChild(messageParagraph);
 
-    // Append the profile and message containers to the chat box
-    chatBox!.appendChild(profileContainer);
-    chatBox!.appendChild(messageContainer);
-    scrollToBottom();
+    // Append everything to the chat box
+    if (chatBox) {
+      chatBox.appendChild(profileContainer);
+      chatBox.appendChild(messageContainer);
+      scrollToBottom();
+    }
 
+    // Return the paragraph element so we can update its content later
     return messageParagraph;
   }
 
@@ -133,24 +160,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Append the user's message to the chat box
     appendChatMessage('/assets/images/user-profile.jpg', 'You', message, true);
+
     // Clear the input field
     chatInput.value = '';
-    // Scroll to the latest message
     scrollToBottom();
 
-    // Append a placeholder bot message with a spinner,
-    // which will be updated with the actual chatbot reply.
+    // Append a placeholder bot message with a spinner
     const botMessageElem = appendBotMessageWithSpinner('/assets/images/chatbot-profile.jpg', 'Chatbot');
 
     // Prepare the payload
-    const payload = { message };
+    // If we have a currentChatId, include it; otherwise, just send the message
+    const payload: any = { message };
+    if (currentChatId !== null) {
+      payload.chatId = currentChatId;
+    }
 
-    // Make a POST request to the chat backend route using our axios client
+    // Make a POST request to the chat backend route
     client.post('/chat', payload)
       .then(response => {
         console.log('Chat response:', response.data);
         const data = response.data;
-        // Update the placeholder element with the chatbot's actual reply
+
+        // If the backend returns a chatId (e.g., for a new chat), store it.
+        if (data.chatId) {
+          currentChatId = data.chatId;
+          console.log('Updating currentChatId to:', currentChatId);
+        }
+
+        // Update the spinner placeholder with the chatbot's actual reply
         botMessageElem.innerHTML = data.message;
         scrollToBottom();
       })
@@ -162,12 +199,14 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 
-  // Scroll to the bottom of the chat box on page load
+  // Scroll to the bottom on page load
   scrollToBottom();
 
-  // Optional: Auto-scroll when new messages are added dynamically
+  // Optional: Auto-scroll when new messages are added
   const observer = new MutationObserver(() => {
     scrollToBottom();
   });
-  observer.observe(chatBox, { childList: true });
+  if (chatBox) {
+    observer.observe(chatBox, { childList: true });
+  }
 });

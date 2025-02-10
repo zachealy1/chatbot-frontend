@@ -584,6 +584,54 @@ app.get('/delete-chat-history', async (req, res) => {
   }
 });
 
+app.get('/open-chat-history', async (req, res) => {
+  try {
+    // Retrieve the chatId from query parameters.
+    const chatIdParam = req.query.chatId;
+    if (!chatIdParam) {
+      return res.status(400).send('Missing chatId parameter.');
+    }
+
+    // Convert chatIdParam to a number (if applicable)
+    const chatId = parseInt(chatIdParam as string, 10);
+    if (isNaN(chatId)) {
+      return res.status(400).send('Invalid chatId parameter.');
+    }
+
+    // Retrieve the stored Spring Boot session cookie.
+    const storedCookie =
+      (req.user as any)?.springSessionCookie ||
+      (req.session as any)?.springSessionCookie ||
+      '';
+    if (!storedCookie) {
+      return res.status(401).send('User not authenticated or session expired.');
+    }
+
+    // Create a cookie jar and set the stored cookie for the backend.
+    const jar = new CookieJar();
+    jar.setCookieSync(storedCookie, 'http://localhost:4550');
+
+    // Create an axios client with cookie jar support and XSRF handling.
+    const client = wrapper(axios.create({
+      jar,
+      withCredentials: true,
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN'
+    }));
+
+    // Fetch messages for this chatId from your Spring Boot backend
+    const messagesResponse = await client.get(`http://localhost:4550/chat/messages/${chatId}`);
+    const messages = messagesResponse.data; // Expecting an array of message objects
+
+    // Render the 'chat' template, passing both chatId and messages
+    // If your chat.njk template is set up to display these, you'll see the conversation
+    res.render('chat', { chatId, messages });
+  } catch (error) {
+    console.error('Error retrieving chat history:', error);
+    res.status(500).send('Error retrieving chat history.');
+  }
+});
+
 app.get('/contact-support', async (req, res) => {
   try {
     // Retrieve the Spring Boot session cookie from your session or user object.
