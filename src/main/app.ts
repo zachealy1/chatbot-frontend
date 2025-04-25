@@ -686,7 +686,7 @@ app.get('/chat', ensureAuthenticated, (req, res) => {
   res.render('chat');
 });
 
-app.get('/chat-history', async (req, res) => {
+app.get('/chat-history', ensureAuthenticated, async (req, res) => {
   try {
     // Retrieve the stored Spring Boot session cookie
     const storedCookie =
@@ -734,7 +734,7 @@ app.get('/chat-history', async (req, res) => {
   }
 });
 
-app.get('/delete-chat-history', async (req, res) => {
+app.get('/delete-chat-history',  ensureAuthenticated, async (req, res) => {
   try {
     // Retrieve the chatId from the query parameters.
     const chatId = req.query.chatId;
@@ -784,7 +784,7 @@ app.get('/delete-chat-history', async (req, res) => {
   }
 });
 
-app.get('/open-chat-history', async (req, res) => {
+app.get('/open-chat-history', ensureAuthenticated, async (req, res) => {
   try {
     // Retrieve the chatId from query parameters.
     const chatIdParam = req.query.chatId;
@@ -832,7 +832,7 @@ app.get('/open-chat-history', async (req, res) => {
   }
 });
 
-app.get('/contact-support', async (req, res) => {
+app.get('/contact-support', ensureAuthenticated, async (req, res) => {
   try {
     // Retrieve the Spring Boot session cookie from your session or user object.
     const storedCookie =
@@ -877,7 +877,7 @@ app.get('/contact-support', async (req, res) => {
   }
 });
 
-app.get('/account', async (req, res) => {
+app.get('/account',  ensureAuthenticated, async (req, res) => {
   try {
     const storedCookie =
       (req.user as any)?.springSessionCookie ||
