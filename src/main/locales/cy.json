@@ -1,0 +1,15 @@
+{
+  "appName": "Sgwrsbot HMCTS",
+  "signInHeading": "Mewngofnodi",
+  "successTitle": "Llwyddiant",
+  "accountCreatedMessage": "Mae eich cyfrif wedi’i greu’n llwyddiannus",
+  "passwordResetMessage": "Mae eich cyfrinair wedi’i adnewyddu’n llwyddiannus",
+  "contactSupportHtml": "Cysylltwch â <a class=\"govuk-notification-banner__link\" href=\"#\">example@department.gov.uk</a> os credwch fod problem.",
+  "noAccountPrompt": "Os nad oes gennych gyfrif, gallwch <a href=\"/register\" class=\"govuk-link\">gofyn am un nawr</a>.",
+  "usernameLabel": "Enw defnyddiwr",
+  "passwordLabel": "Cyfrinair",
+  "showButton": "Dangos",
+  "continueButton": "Parhau",
+  "forgotPasswordLink": "Wedi anghofio’ch cyfrinair?",
+  "loginInvalidCredentials": "Enw defnyddiwr neu gyfrinair annilys."
+}

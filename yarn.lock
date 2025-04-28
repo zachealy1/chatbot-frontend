@@ -2605,6 +2605,52 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@messageformat/core@npm:^3.0.0":
+  version: 3.4.0
+  resolution: "@messageformat/core@npm:3.4.0"
+  dependencies:
+    "@messageformat/date-skeleton": ^1.0.0
+    "@messageformat/number-skeleton": ^1.0.0
+    "@messageformat/parser": ^5.1.0
+    "@messageformat/runtime": ^3.0.1
+    make-plural: ^7.0.0
+    safe-identifier: ^0.4.1
+  checksum: c9b75b510a8b0193a4ee6d600c97f7adacbb98125bd7c0ef60c9ebfb97591d0ecf8247868373919e79adcff1fc6aecd04a905160e212976d2846e4f0dc3d705f
+  languageName: node
+  linkType: hard
+
+"@messageformat/date-skeleton@npm:^1.0.0":
+  version: 1.1.0
+  resolution: "@messageformat/date-skeleton@npm:1.1.0"
+  checksum: 599adc2aba1639b9505420bce61035ce8cbf1a38bf77b39be5de7b9ecb4c4a2290ae3ebc2ee94ba5aabf52d22654b5febb961694dc52d9a4e6fb859d758aaea8
+  languageName: node
+  linkType: hard
+
+"@messageformat/number-skeleton@npm:^1.0.0":
+  version: 1.2.0
+  resolution: "@messageformat/number-skeleton@npm:1.2.0"
+  checksum: deb38fc45248a774e142437c5687a4ba452ab4064ac7ac985da26376238a9f54bd43e6e90ab0756fedd35d4d83e36d2dfc336abf643d52ff3850f5d1eae59e0c
+  languageName: node
+  linkType: hard
+
+"@messageformat/parser@npm:^5.1.0":
+  version: 5.1.1
+  resolution: "@messageformat/parser@npm:5.1.1"
+  dependencies:
+    moo: ^0.5.1
+  checksum: 530a53b1445709f3a0361c378892fe84a976a3977869dfb7e31580375f3ddb6e9fac933dfb4f1f214c22e716e8e52f6ada2c47c765c5f3d87ca4747f5076eeaa
+  languageName: node
+  linkType: hard
+
+"@messageformat/runtime@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "@messageformat/runtime@npm:3.0.1"
+  dependencies:
+    make-plural: ^7.0.0
+  checksum: e69c3b0b372e15af88c285f6884ac0e3ba5fc7227b8ddc7f4bef94cb5675057126dc0ae9001e2a623d7ec61727d9b5e69b8e61be8618afe0baf40081ad3b0568
+  languageName: node
+  linkType: hard
+
 "@microsoft/applicationinsights-web-snippet@npm:^1.1.2":
   version: 1.1.2
   resolution: "@microsoft/applicationinsights-web-snippet@npm:1.1.2"
@@ -3821,6 +3867,13 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: f5ab4afe7e3feba9d87bdddbf44e03d9a836bd2cdab679a794badbff7c4bfb6bebf46bfe22d9964eb1820e1349f2ff7807cccb20fd27cb17f03db849289e5892
+  languageName: node
+  linkType: hard
+
+"@types/i18n@npm:^0.13.12":
+  version: 0.13.12
+  resolution: "@types/i18n@npm:0.13.12"
+  checksum: dceac7da2ad985a04e2a96e450ad8a2b313e8a7be921ec7d1f05b5d9ee66309ec1845d7af70b0c2ab213de2d2f1de315038978d5c4dd86796b350fea67c6e90f
   languageName: node
   linkType: hard
 
@@ -8342,6 +8395,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-printf@npm:^1.6.9":
+  version: 1.6.10
+  resolution: "fast-printf@npm:1.6.10"
+  checksum: de08661b73b70b334f05bdd69756048a934f262a5333ac620dbb798437e77d38531fa10b6064afade13b42d6f955aa2475ba0b5d09b9fd8b6f9f7a5a717ffc7d
+  languageName: node
+  linkType: hard
+
 "fast-safe-stringify@npm:^2.1.1":
   version: 2.1.1
   resolution: "fast-safe-stringify@npm:2.1.1"
@@ -9551,6 +9611,20 @@ __metadata:
   bin:
     husky: bin.mjs
   checksum: 1aebc3334dc7ac6288ff5e1fb72cfb447cfa474e72cf7ba692e8c5698c573ab725c28c6a5088c9f8e6aca5f47d40fa7261beffbc07a4d307ca21656dc4571f07
+  languageName: node
+  linkType: hard
+
+"i18n@npm:^0.15.1":
+  version: 0.15.1
+  resolution: "i18n@npm:0.15.1"
+  dependencies:
+    "@messageformat/core": ^3.0.0
+    debug: ^4.3.3
+    fast-printf: ^1.6.9
+    make-plural: ^7.0.0
+    math-interval-parser: ^2.0.1
+    mustache: ^4.2.0
+  checksum: 8adfd70718c636851fd551b469998c37216cb8d9665d8f8d26807e6aebdcb25998d827ebe335b35f1e846fe4cad081c5540434afc2e5b3419a13132ec1a9b350
   languageName: node
   linkType: hard
 
@@ -11538,6 +11612,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"make-plural@npm:^7.0.0":
+  version: 7.4.0
+  resolution: "make-plural@npm:7.4.0"
+  checksum: f2e58b6efd3e099ebc076d6c6b60854740886006a7af9cfcb1d4478409efbdd41f6ae14921b8eef4f1cbc0702ff7a29f159199d7ac0831784d0bbfcfded39558
+  languageName: node
+  linkType: hard
+
 "makeerror@npm:1.0.12":
   version: 1.0.12
   resolution: "makeerror@npm:1.0.12"
@@ -11560,6 +11641,13 @@ __metadata:
   dependencies:
     "@arr/every": ^1.0.0
   checksum: 14617343d9f77a5f2a2e9e5213b1d6c1c7b3efda10758d1502e632edf63bf77f260e3f1aa2afdc97dd7e259fae7845a1b07719cd4680d2f1d23b2aa45a393934
+  languageName: node
+  linkType: hard
+
+"math-interval-parser@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "math-interval-parser@npm:2.0.1"
+  checksum: aa7111a337106a68a822d63331b9400621637700f96b1a2ae5dcd4abb7571c271d56995b78223023e255259f37065e55a848bdc4c82d023e628e7e415082475f
   languageName: node
   linkType: hard
 
@@ -11967,6 +12055,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"moo@npm:^0.5.1":
+  version: 0.5.2
+  resolution: "moo@npm:0.5.2"
+  checksum: 5a41ddf1059fd0feb674d917c4774e41c877f1ca980253be4d3aae1a37f4bc513f88815041243f36f5cf67a62fb39324f3f997cf7fb17b6cb00767c165e7c499
+  languageName: node
+  linkType: hard
+
 "ms@npm:2.0.0":
   version: 2.0.0
   resolution: "ms@npm:2.0.0"
@@ -11995,7 +12090,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mustache@npm:~4.2.0":
+"mustache@npm:^4.2.0, mustache@npm:~4.2.0":
   version: 4.2.0
   resolution: "mustache@npm:4.2.0"
   bin:
@@ -14114,6 +14209,7 @@ __metadata:
     "@types/express-session": ^1.18.1
     "@types/glob": ^8.1.0
     "@types/helmet": ^4.0.0
+    "@types/i18n": ^0.13.12
     "@types/jest": ^29.5.4
     "@types/js-cookie": ^3.0.6
     "@types/lodash": ^4.14.197
@@ -14154,6 +14250,7 @@ __metadata:
     html-webpack-plugin: ^5.5.3
     http-proxy-middleware: ^3.0.3
     husky: ^9.0.0
+    i18n: ^0.15.1
     jest: ^29.6.2
     jest-html-reporter: ^3.10.1
     jquery: ^3.7.0
@@ -14257,6 +14354,13 @@ __metadata:
   version: 5.1.2
   resolution: "safe-buffer@npm:5.1.2"
   checksum: f2f1f7943ca44a594893a852894055cf619c1fbcb611237fc39e461ae751187e7baf4dc391a72125e0ac4fb2d8c5c0b3c71529622e6a58f46b960211e704903c
+  languageName: node
+  linkType: hard
+
+"safe-identifier@npm:^0.4.1":
+  version: 0.4.2
+  resolution: "safe-identifier@npm:0.4.2"
+  checksum: 67e28ed89a74cf20b827419003d3cb60a0ebaec0771c2c818f4b2239bf4f96e01ad90aa8db6dc57ee90c0c438b6f46323e4b5a3d955d18d8c4e158ea035cabdd
   languageName: node
   linkType: hard
 

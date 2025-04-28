@@ -12,6 +12,7 @@ import * as bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import { glob } from 'glob';
+import i18n from 'i18n';
 import passport from 'passport';
 import favicon from 'serve-favicon';
 import { CookieJar } from 'tough-cookie';
@@ -41,6 +42,43 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+
+i18n.configure({
+  locales:        ['en', 'cy'],
+  directory:      path.join(__dirname, 'locales'),
+  defaultLocale:  'en',
+  cookie:         'lang',
+  queryParameter: 'lang',
+});
+app.use(i18n.init);
+
+// 3) only write the cookie when it really changes
+app.use((req, res, next) => {
+  // pick up from ?lang or existing cookie
+  const requestedLang = (req.query.lang as string) || req.cookies.lang;
+
+  // if it’s one of our supported locales, switch to it
+  if (requestedLang && ['en', 'cy'].includes(requestedLang)) {
+    // only re-set the cookie if it’s different
+    if (req.cookies.lang !== requestedLang) {
+      res.cookie('lang', requestedLang, {
+        httpOnly: true,
+        maxAge:   365 * 24 * 60 * 60 * 1000,
+      });
+    }
+    req.setLocale(requestedLang);
+    res.locals.lang = requestedLang;
+  } else {
+    // nothing in query or cookie→ fallback to defaultLocale
+    req.setLocale(i18n.getLocale());
+    res.locals.lang = i18n.getLocale();
+  }
+
+  // expose translation fn to Nunjucks
+  res.locals.__ = req.__.bind(req);
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use((req, res, next) => {
@@ -50,17 +88,19 @@ app.use((req, res, next) => {
 
 const session = require('express-session');
 
-app.use(session({
-  secret: 'your-secret-key',
-  resave: false,             // Only save the session if it is modified.
-  saveUninitialized: false,  // Do not create a session until something is stored.
-  cookie: {
-    httpOnly: true,
-    secure: false,          // Set to true if using HTTPS.
-    path: '/'
-    // You may also need to set domain if you're working with subdomains.
-  }
-}));
+app.use(
+  session({
+    secret: 'your-secret-key',
+    resave: false, // Only save the session if it is modified.
+    saveUninitialized: false, // Do not create a session until something is stored.
+    cookie: {
+      httpOnly: true,
+      secure: false, // Set to true if using HTTPS.
+      path: '/',
+      // You may also need to set domain if you're working with subdomains.
+    },
+  })
+);
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -76,19 +116,15 @@ app.post('/login', async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
-    // Retrieve the CSRF token from the Spring Boot backend.
+    // 1) fetch CSRF token…
     const csrfResponse = await axios.get('http://localhost:4550/csrf', { withCredentials: true });
     const csrfToken = csrfResponse.data.csrfToken;
-    console.log('Retrieved CSRF token:', csrfToken);
 
-    // Capture the cookie from the /csrf response.
+    // 2) capture the cookie…
     const csrfCookieHeader = csrfResponse.headers['set-cookie'];
-    const csrfCookie = Array.isArray(csrfCookieHeader)
-      ? csrfCookieHeader.join('; ')
-      : csrfCookieHeader;
-    console.log('Retrieved CSRF cookie:', csrfCookie);
+    const csrfCookie = Array.isArray(csrfCookieHeader) ? csrfCookieHeader.join('; ') : csrfCookieHeader;
 
-    // Send the login request including the CSRF token and cookie.
+    // 3) send login to Spring…
     const loginResponse = await axios.post(
       'http://localhost:4550/login/chat',
       { username, password },
@@ -97,41 +133,38 @@ app.post('/login', async (req, res, next) => {
         headers: {
           'X-XSRF-TOKEN': csrfToken,
           Cookie: csrfCookie,
-        }
+        },
       }
     );
 
-    console.log('Login response headers:', loginResponse.headers);
+    // 4) persist the returned cookie & CSRF token in session…
     const setCookieHeader = loginResponse.headers['set-cookie'];
-    const loginCookie = Array.isArray(setCookieHeader)
-      ? setCookieHeader.join('; ')
-      : setCookieHeader;
-    console.log('Login Set-Cookie header:', loginCookie);
-
-    // Save both the Spring Boot session cookie and the CSRF token in the Express session.
+    const loginCookie = Array.isArray(setCookieHeader) ? setCookieHeader.join('; ') : setCookieHeader;
     (req.session as any).springSessionCookie = loginCookie;
     (req.session as any).csrfToken = csrfToken;
-    console.log('Stored springSessionCookie in session:', loginCookie);
-    console.log('Stored csrfToken in session:', csrfToken);
 
-    // Explicitly save the session.
-    req.session.save((err: any) => {
-      if (err) {
-        console.error('Error saving session:', err);
-      } else {
-        console.log('Session saved successfully with springSessionCookie and csrfToken.');
-      }
+    // 5) save the session and complete passport login…
+    req.session.save(err => {
+      if (err) console.error('Error saving session:', err);
       req.login({ username, springSessionCookie: loginCookie, csrfToken }, err => {
-        if (err) {
-          return next(err);
-        }
+        if (err) return next(err);
         return res.redirect('/chat');
       });
     });
-  } catch (error: any) {
-    console.error('Full login error:', error.response || error.message);
-    const errorMessage = error.response?.data || 'Invalid username or password.';
-    return res.render('login', { error: errorMessage, username: req.body.username });
+
+  } catch (err: any) {
+    console.error('Full login error:', err.response || err.message);
+
+    // Look for a message from the backend, otherwise fall back to our localized string
+    const backendMsg = err.response?.data;
+    const errorMessage = backendMsg
+      ? backendMsg
+      : req.__('loginInvalidCredentials');
+
+    return res.render('login', {
+      error: errorMessage,
+      username: req.body.username
+    });
   }
 });
 
@@ -267,7 +300,7 @@ app.post('/forgot-password/reset-password', async (req, res) => {
         email,
         otp,
         password,
-        confirmPassword
+        confirmPassword,
       },
       {
         headers: { 'X-XSRF-TOKEN': csrfToken },
@@ -277,7 +310,6 @@ app.post('/forgot-password/reset-password', async (req, res) => {
     console.log('[ForgotPassword] Password reset call succeeded:', response.data);
 
     return res.redirect('/login?passwordReset=true');
-
   } catch (error) {
     console.error('[ForgotPassword] Error calling backend /forgot-password/reset-password:', error);
 
@@ -345,13 +377,12 @@ app.post('/forgot-password/verify-otp', async (req, res) => {
 
     // 5) Redirect to /forgot-password/reset-password
     return res.redirect('/forgot-password/reset-password');
-
   } catch (error) {
     console.error('[ForgotPassword] Error calling backend /forgot-password/verify-otp:', error);
 
     let errorMessage = 'An error occurred while verifying the OTP. Please try again.';
     if (error.response && error.response.data) {
-      errorMessage = error.response.data;  // e.g. "OTP incorrect", "OTP expired", etc.
+      errorMessage = error.response.data; // e.g. "OTP incorrect", "OTP expired", etc.
     }
 
     return res.render('verify-otp', {
@@ -382,7 +413,7 @@ app.post('/forgot-password/resend-otp', async (req, res) => {
         jar,
         withCredentials: true,
         xsrfCookieName: 'XSRF-TOKEN',
-        xsrfHeaderName: 'X-XSRF-TOKEN'
+        xsrfHeaderName: 'X-XSRF-TOKEN',
       })
     );
 
@@ -403,7 +434,6 @@ app.post('/forgot-password/resend-otp', async (req, res) => {
     console.log('[ForgotPassword] Resend-OTP call succeeded:', response.data);
 
     return res.redirect('/forgot-password/verify-otp');
-
   } catch (error) {
     console.error('[ForgotPassword] Error calling backend /forgot-password/resend-otp:', error);
 
@@ -485,12 +515,14 @@ app.post('/register', async (req, res) => {
   try {
     // Create a cookie jar and an axios client that supports cookies.
     const jar = new CookieJar();
-    const client = wrapper(axios.create({
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN',
-    }));
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     // Request the CSRF token from the backend.
     const csrfResponse = await client.get('http://localhost:4550/csrf');
@@ -498,17 +530,21 @@ app.post('/register', async (req, res) => {
     console.log('Retrieved CSRF token:', csrfToken);
 
     // Send the registration POST request using the response body token.
-    const response = await client.post('http://localhost:4550/account/register', {
-      username,
-      email,
-      password,
-      confirmPassword,
-      dateOfBirth,
-    }, {
-      headers: {
-        'X-XSRF-TOKEN': csrfToken,
+    const response = await client.post(
+      'http://localhost:4550/account/register',
+      {
+        username,
+        email,
+        password,
+        confirmPassword,
+        dateOfBirth,
+      },
+      {
+        headers: {
+          'X-XSRF-TOKEN': csrfToken,
+        },
       }
-    });
+    );
 
     console.log('User registered successfully in backend:', response.data);
     res.redirect('/login?created=true');
@@ -541,10 +577,7 @@ app.post('/account/update', async (req, res) => {
   const payload = { email, username, dateOfBirth, password, confirmPassword };
 
   // Retrieve the stored Spring Boot session cookie from req.user or req.session.
-  const storedCookie =
-    (req.user as any)?.springSessionCookie ||
-    (req.session as any)?.springSessionCookie ||
-    '';
+  const storedCookie = (req.user as any)?.springSessionCookie || (req.session as any)?.springSessionCookie || '';
 
   if (!storedCookie) {
     return res.status(401).render('account', {
@@ -563,12 +596,14 @@ app.post('/account/update', async (req, res) => {
     jar.setCookieSync(storedCookie, 'http://localhost:4550');
 
     // Create an axios client with cookie jar support.
-    const client = wrapper(axios.create({
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN',
-    }));
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     // Request the CSRF token from the backend.
     const csrfResponse = await client.get('http://localhost:4550/csrf');
@@ -634,15 +669,12 @@ app.post('/chat', async (req, res) => {
 
   // Retrieve the stored Spring Boot session cookie.
   // Adjust the property names as needed based on how you store it.
-  const storedCookie =
-    (req.user as any)?.springSessionCookie ||
-    (req.session as any)?.springSessionCookie ||
-    '';
+  const storedCookie = (req.user as any)?.springSessionCookie || (req.session as any)?.springSessionCookie || '';
 
   if (!storedCookie) {
     // If no cookie is available, consider the session invalid.
     return res.status(401).json({
-      error: 'Session expired or invalid. Please log in again.'
+      error: 'Session expired or invalid. Please log in again.',
     });
   }
 
@@ -652,12 +684,14 @@ app.post('/chat', async (req, res) => {
     jar.setCookieSync(storedCookie, 'http://localhost:4550');
 
     // Create an axios client with cookie jar support and proper XSRF configuration.
-    const client = wrapper(axios.create({
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN'
-    }));
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     // Request the CSRF token from the backend.
     const csrfResponse = await client.get('http://localhost:4550/csrf');
@@ -667,8 +701,8 @@ app.post('/chat', async (req, res) => {
     // Send the chat POST request with the CSRF token included in the headers.
     const chatResponse = await client.post('http://localhost:4550/chat', payload, {
       headers: {
-        'X-XSRF-TOKEN': csrfToken
-      }
+        'X-XSRF-TOKEN': csrfToken,
+      },
     });
 
     // Return the backend's response (expected to be a JSON with chatId and message).
@@ -676,7 +710,7 @@ app.post('/chat', async (req, res) => {
   } catch (error) {
     console.error('Error sending chat message to backend:', error);
     return res.status(500).json({
-      error: 'An error occurred while sending the chat message. Please try again later.'
+      error: 'An error occurred while sending the chat message. Please try again later.',
     });
   }
 });
@@ -689,10 +723,7 @@ app.get('/chat', ensureAuthenticated, (req, res) => {
 app.get('/chat-history', ensureAuthenticated, async (req, res) => {
   try {
     // Retrieve the stored Spring Boot session cookie
-    const storedCookie =
-      (req.user as any)?.springSessionCookie ||
-      (req.session as any)?.springSessionCookie ||
-      '';
+    const storedCookie = (req.user as any)?.springSessionCookie || (req.session as any)?.springSessionCookie || '';
 
     if (!storedCookie) {
       throw new Error('No Spring Boot session cookie found.');
@@ -703,12 +734,14 @@ app.get('/chat-history', ensureAuthenticated, async (req, res) => {
     jar.setCookieSync(storedCookie, 'http://localhost:4550');
 
     // Create an axios client with cookie jar support and CSRF configuration.
-    const client = wrapper(axios.create({
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN'
-    }));
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     // Retrieve the CSRF token from the backend.
     const csrfResponse = await client.get('http://localhost:4550/csrf');
@@ -718,8 +751,8 @@ app.get('/chat-history', ensureAuthenticated, async (req, res) => {
     // Now call the backend endpoint to get the chat history, including the CSRF token in the headers.
     const chatsResponse = await client.get('http://localhost:4550/chat/chats', {
       headers: {
-        'X-XSRF-TOKEN': csrfToken
-      }
+        'X-XSRF-TOKEN': csrfToken,
+      },
     });
     const chats = chatsResponse.data; // Expected to be an array of chat objects
 
@@ -729,12 +762,12 @@ app.get('/chat-history', ensureAuthenticated, async (req, res) => {
     console.error('Error fetching chat histories:', error);
     res.render('chat-history', {
       chats: [],
-      error: 'Unable to load chat history at this time.'
+      error: 'Unable to load chat history at this time.',
     });
   }
 });
 
-app.get('/delete-chat-history',  ensureAuthenticated, async (req, res) => {
+app.get('/delete-chat-history', ensureAuthenticated, async (req, res) => {
   try {
     // Retrieve the chatId from the query parameters.
     const chatId = req.query.chatId;
@@ -743,10 +776,7 @@ app.get('/delete-chat-history',  ensureAuthenticated, async (req, res) => {
     }
 
     // Retrieve the stored Spring Boot session cookie from req.user or req.session.
-    const storedCookie =
-      (req.user as any)?.springSessionCookie ||
-      (req.session as any)?.springSessionCookie ||
-      '';
+    const storedCookie = (req.user as any)?.springSessionCookie || (req.session as any)?.springSessionCookie || '';
     if (!storedCookie) {
       return res.status(401).send('User not authenticated or session expired.');
     }
@@ -756,12 +786,14 @@ app.get('/delete-chat-history',  ensureAuthenticated, async (req, res) => {
     jar.setCookieSync(storedCookie, 'http://localhost:4550');
 
     // Create an axios client with cookie jar support and proper CSRF configuration.
-    const client = wrapper(axios.create({
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN'
-    }));
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     // (Optional) Retrieve the CSRF token from the backend.
     const csrfResponse = await client.get('http://localhost:4550/csrf');
@@ -772,8 +804,8 @@ app.get('/delete-chat-history',  ensureAuthenticated, async (req, res) => {
     // Assuming the backend delete route is at: DELETE http://localhost:4550/chat/chats/{chatId}
     await client.delete(`http://localhost:4550/chat/chats/${chatId}`, {
       headers: {
-        'X-XSRF-TOKEN': csrfToken
-      }
+        'X-XSRF-TOKEN': csrfToken,
+      },
     });
 
     // Redirect back to the chat history page (optionally with a query parameter to show a success message).
@@ -799,10 +831,7 @@ app.get('/open-chat-history', ensureAuthenticated, async (req, res) => {
     }
 
     // Retrieve the stored Spring Boot session cookie.
-    const storedCookie =
-      (req.user as any)?.springSessionCookie ||
-      (req.session as any)?.springSessionCookie ||
-      '';
+    const storedCookie = (req.user as any)?.springSessionCookie || (req.session as any)?.springSessionCookie || '';
     if (!storedCookie) {
       return res.status(401).send('User not authenticated or session expired.');
     }
@@ -812,12 +841,14 @@ app.get('/open-chat-history', ensureAuthenticated, async (req, res) => {
     jar.setCookieSync(storedCookie, 'http://localhost:4550');
 
     // Create an axios client with cookie jar support and XSRF handling.
-    const client = wrapper(axios.create({
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN'
-    }));
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     // Fetch messages for this chatId from your Spring Boot backend
     const messagesResponse = await client.get(`http://localhost:4550/chat/messages/${chatId}`);
@@ -835,10 +866,7 @@ app.get('/open-chat-history', ensureAuthenticated, async (req, res) => {
 app.get('/contact-support', ensureAuthenticated, async (req, res) => {
   try {
     // Retrieve the Spring Boot session cookie from your session or user object.
-    const storedCookie =
-      (req.user as any)?.springSessionCookie ||
-      (req.session as any)?.springSessionCookie ||
-      '';
+    const storedCookie = (req.user as any)?.springSessionCookie || (req.session as any)?.springSessionCookie || '';
     if (!storedCookie) {
       throw new Error('No Spring Boot session cookie found.');
     }
@@ -848,12 +876,14 @@ app.get('/contact-support', ensureAuthenticated, async (req, res) => {
     jar.setCookieSync(storedCookie, 'http://localhost:4550');
 
     // Create an axios client with cookie jar support.
-    const client = wrapper(axios.create({
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN'
-    }));
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     const bannerResponse = await client.get('http://localhost:4550/support-banner/1');
     const fetchedBanner = bannerResponse.data;
@@ -861,7 +891,7 @@ app.get('/contact-support', ensureAuthenticated, async (req, res) => {
     // Map the fetched properties to the ones expected by the template.
     const supportBanner = {
       titleText: fetchedBanner.title,
-      html: fetchedBanner.content
+      html: fetchedBanner.content,
     };
 
     // Render the template with the mapped banner data.
@@ -871,18 +901,15 @@ app.get('/contact-support', ensureAuthenticated, async (req, res) => {
     res.render('contact-support', {
       supportBanner: {
         titleText: 'Contact Support Team',
-        html: "If you need assistance, please call us at <strong>0800 123 456</strong> or email <a href='mailto:support@example.com'>support@example.com</a>."
-      }
+        html: "If you need assistance, please call us at <strong>0800 123 456</strong> or email <a href='mailto:support@example.com'>support@example.com</a>.",
+      },
     });
   }
 });
 
-app.get('/account',  ensureAuthenticated, async (req, res) => {
+app.get('/account', ensureAuthenticated, async (req, res) => {
   try {
-    const storedCookie =
-      (req.user as any)?.springSessionCookie ||
-      (req.session as any)?.springSessionCookie ||
-      '';
+    const storedCookie = (req.user as any)?.springSessionCookie || (req.session as any)?.springSessionCookie || '';
     if (!storedCookie) {
       throw new Error('No Spring Boot session cookie found.');
     }
@@ -892,12 +919,14 @@ app.get('/account',  ensureAuthenticated, async (req, res) => {
     jar.setCookieSync(storedCookie, 'http://localhost:4550');
 
     // Create an axios instance with cookie jar support.
-    const client = wrapper(axios.create({
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN',
-    }));
+    const client = wrapper(
+      axios.create({
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     // Make parallel requests to your Spring Boot backend endpoints.
     const [usernameRes, emailRes, dayRes, monthRes, yearRes] = await Promise.all([
@@ -905,7 +934,7 @@ app.get('/account',  ensureAuthenticated, async (req, res) => {
       client.get('http://localhost:4550/account/email'),
       client.get('http://localhost:4550/account/date-of-birth/day'),
       client.get('http://localhost:4550/account/date-of-birth/month'),
-      client.get('http://localhost:4550/account/date-of-birth/year')
+      client.get('http://localhost:4550/account/date-of-birth/year'),
     ]);
 
     const context = {
@@ -915,7 +944,7 @@ app.get('/account',  ensureAuthenticated, async (req, res) => {
       month: monthRes.data,
       year: yearRes.data,
       updated: req.query.updated === 'true',
-      errors: null
+      errors: null,
     };
 
     // Disable caching so that the page reloads fresh each time.
@@ -925,7 +954,7 @@ app.get('/account',  ensureAuthenticated, async (req, res) => {
     console.error('Error retrieving account details:', error);
     res.render('account', {
       errors: ['Error retrieving account details.'],
-      updated: req.query.updated === 'true'
+      updated: req.query.updated === 'true',
     });
   }
 });

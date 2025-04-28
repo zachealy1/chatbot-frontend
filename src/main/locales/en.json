@@ -1,0 +1,15 @@
+{
+  "appName": "HMCTS chatbot",
+  "signInHeading": "Sign in",
+  "successTitle": "Success",
+  "accountCreatedMessage": "Your account has been created successfully",
+  "passwordResetMessage": "Your password has been reset successfully",
+  "contactSupportHtml": "Contact <a class=\"govuk-notification-banner__link\" href=\"#\">example@department.gov.uk</a> if you think there’s a problem.",
+  "noAccountPrompt": "If you do not have an account, you can <a href=\"/register\" class=\"govuk-link\">request one now</a>.",
+  "usernameLabel": "Username",
+  "passwordLabel": "Password",
+  "showButton": "Show",
+  "continueButton": "Continue",
+  "forgotPasswordLink": "Forgotten your password?",
+  "loginInvalidCredentials": "Invalid username or password."
+}

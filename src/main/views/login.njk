@@ -14,56 +14,103 @@
     classes: "govuk-header--full-width-border"
   }) }}
 
-  {{ govukServiceNavigation({
-    serviceName: "HMCTS chatbot"
-  }) }}
+  <section
+    aria-label="Service information"
+    class="govuk-service-navigation"
+    data-module="govuk-service-navigation"
+  >
+    <div class="govuk-width-container">
+      <div class="govuk-service-navigation__container">
+      <span class="govuk-service-navigation__service-name">
+        <a>
+          {{ __("appName") }}
+        </a>
+      </span>
+
+        <!-- Language switcher added inside the same container -->
+        <nav class="language-select" aria-label="Language switcher">
+          <ul class="language-select__list">
+            <li class="language-select__list-item">
+              {% if lang == "cy" %}
+                <a href="?lang=en" class="govuk-link">English</a>
+              {% else %}
+                <span aria-current="true">English</span>
+              {% endif %}
+            </li>
+            <li class="language-select__list-item">
+              {% if lang == "cy" %}
+                <span aria-current="true">Cymraeg</span>
+              {% else %}
+                <a
+                  href="?lang=cy"
+                  hreflang="cy"
+                  lang="cy"
+                  rel="alternate"
+                  class="govuk-link"
+                  data-journey-click="link - click:lang-select:Cymraeg"
+                >
+                <span class="govuk-visually-hidden">
+                  Newid yr iaith ir Gymraeg
+                </span>
+                  <span aria-hidden="true">Cymraeg</span>
+                </a>
+              {% endif %}
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </section>
+
 {% endblock %}
 
 {% block content %}
-  <h1 class="govuk-heading-xl">Sign in</h1>
+  <h1 class="govuk-heading-xl">{{ __("signInHeading") }}</h1>
 
   <!-- Success Alert -->
   {% if created %}
-    <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+    <div class="govuk-notification-banner govuk-notification-banner--success" role="alert"
+         aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
       <div class="govuk-notification-banner__header">
         <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-          Success
+          {{ __("successTitle") }}
         </h2>
       </div>
       <div class="govuk-notification-banner__content">
         <h3 class="govuk-notification-banner__heading">
-          Your account has been created successfully
+          {{ __("accountCreatedMessage") }}
         </h3>
-        <p class="govuk-body">Contact <a class="govuk-notification-banner__link" href="#">example@department.gov.uk</a> if you think there’s a problem.</p>
+        <p class="govuk-body">{{ __("contactSupportHtml") | safe }}</p>
       </div>
     </div>
   {% endif %}
 
   <!-- Success Alert -->
   {% if passwordReset %}
-    <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+    <div class="govuk-notification-banner govuk-notification-banner--success" role="alert"
+         aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
       <div class="govuk-notification-banner__header">
         <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-          Success
+          {{ __("successTitle") }}
         </h2>
       </div>
       <div class="govuk-notification-banner__content">
         <h3 class="govuk-notification-banner__heading">
-          Your password has been reset successfully
+          {{ __("passwordResetMessage") }}
         </h3>
-        <p class="govuk-body">Contact <a class="govuk-notification-banner__link" href="#">example@department.gov.uk</a> if you think there’s a problem.</p>
+        <p class="govuk-body">{{ __("contactSupportHtml") | safe }}</p>
       </div>
     </div>
   {% endif %}
 
   <p class="govuk-body">
-    If you do not have an account, you can <a href="/register" class="govuk-link">request one now</a>.
+    {{ __("noAccountPrompt") | safe }}
   </p>
 
   <form action="/login" method="post">
     <!-- Username Field -->
     <div class="govuk-form-group {% if error %}govuk-form-group--error{% endif %}">
-      <label class="govuk-label" for="username">Username</label>
+      <label class="govuk-label" for="username">{{ __("usernameLabel") }}</label>
       {% if error %}
         <span id="username-error" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span> {{ error }}
@@ -80,7 +127,7 @@
 
     <!-- Password Field -->
     <div class="govuk-form-group {% if error %}govuk-form-group--error{% endif %}">
-      <label class="govuk-label" for="password">Password</label>
+      <label class="govuk-label" for="password">{{ __("passwordLabel") }}</label>
       {% if error %}
         <span id="password-error" class="govuk-error-message">
           <span class="govuk-visually-hidden">Error:</span> {{ error }}
@@ -99,18 +146,18 @@
         data-target="password"
         data-module="govuk-button"
         aria-expanded="false">
-        Show
+        {{ __("showButton") }}
       </button>
     </div>
 
     {{ govukButton({
-      text: "Continue",
+      text:  __("continueButton"),
       type: "submit"
     }) }}
   </form>
 
   <p class="govuk-body">
-    <a href="/forgot-password" class="govuk-link">Forgotten your password?</a>
+    <a href="/forgot-password" class="govuk-link">{{ __("forgotPasswordLink") }}</a>
   </p>
 
   <script src="showPassword-dev.js"></script>
