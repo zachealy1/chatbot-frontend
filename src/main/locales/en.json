@@ -30,5 +30,9 @@
 	"passwordPlaceholder": "Leave blank to keep the current password",
 	"confirmPasswordLabel": "Confirm new password",
 	"confirmPasswordPlaceholder": "Re-enter the new password",
-	"saveChangesButton": "Save changes"
+	"saveChangesButton": "Save changes",
+  "forgotPasswordHeading": "Forgotten your password?",
+  "enterEmailLabel": "Enter your email address",
+  "forgotPasswordHint": "We’ll email you a code to help set a new password",
+  "sendEmailButton": "Send Email"
 }

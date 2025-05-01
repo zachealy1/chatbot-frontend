@@ -30,5 +30,9 @@
 	"passwordPlaceholder": "Gadewch yn wag i gadw’r cyfrinair presennol",
 	"confirmPasswordLabel": "Cadarnhau’r cyfrinair newydd",
 	"confirmPasswordPlaceholder": "Ail-nodi’r cyfrinair newydd",
-	"saveChangesButton": "Cadw newidiadau"
+	"saveChangesButton": "Cadw newidiadau",
+  "forgotPasswordHeading": "Wedi anghofio’ch cyfrinair?",
+  "enterEmailLabel": "Nodwch eich cyfeiriad e-bost",
+  "forgotPasswordHint": "Byddwn yn anfon cod atoch drwy e-bost i helpu i osod cyfrinair newydd",
+  "sendEmailButton": "Anfonwch E-bost"
 }
