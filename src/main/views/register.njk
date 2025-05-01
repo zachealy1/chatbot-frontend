@@ -6,7 +6,7 @@
 {% extends "template.njk" %}
 
 {% block pageTitle %}
-  {{ __("appName") }}
+  HMCTS chatbot
 {% endblock %}
 
 {% block header %}
@@ -149,6 +149,7 @@
           <li>{{ __("passwordCriteriaBullet5") }}</li>
         </ul>
       </div>
+      <label class="govuk-label" for="password">{{ __("labelNewPassword") }}</label>
       <input
         class="govuk-input govuk-input-password govuk-!-width-one-half"
         id="password"

@@ -959,10 +959,6 @@ app.get('/account', ensureAuthenticated, async (req, res) => {
   }
 });
 
-app.get('/account/update', ensureAuthenticated, (req, res) => {
-  res.render('update');
-});
-
 glob
   .sync(__dirname + '/routes/**/*.+(ts|js)')
   .map(filename => require(filename))
