@@ -49,5 +49,16 @@
   "passwordRule4": "Include a number",
   "passwordRule5": "Include a special character (e.g., @, $, !, %, *, ?)",
   "newPasswordLabel": "New Password",
-  "newPasswordPlaceholder": "Leave blank to keep the current password"
+  "newPasswordPlaceholder": "Leave blank to keep the current password",
+  "navChat": "Chat",
+  "navChatHistory": "Chat History",
+  "navContactSupport": "Contact Support",
+  "navAccount": "Account",
+  "navLogout": "Logout",
+  "altUserProfile": "User profile picture",
+  "altChatbotProfile": "Chatbot profile picture",
+  "labelUser": "User:",
+  "labelChatbot": "Chatbot:",
+  "chatInputPlaceholder": "Type your message",
+  "sendButton": "Send"
 }

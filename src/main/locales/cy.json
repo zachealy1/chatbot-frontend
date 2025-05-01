@@ -49,5 +49,16 @@
   "passwordRule4": "Cynnwys rhif",
   "passwordRule5": "Cynnwys cymeriad arbennig (e.e., @, $, !, %, *, ?)",
   "newPasswordLabel": "Cyfrinair Newydd",
-  "newPasswordPlaceholder": "Gadewch yn wag i gadw’r cyfrinair presennol"
+  "newPasswordPlaceholder": "Gadewch yn wag i gadw’r cyfrinair presennol",
+  "navChat": "Sgwrs",
+  "navChatHistory": "Hanes",
+  "navContactSupport": "Cefnogi",
+  "navAccount": "Cyfrif",
+  "navLogout": "Allgofnodi",
+  "altUserProfile": "Delwedd proffil defnyddiwr",
+  "altChatbotProfile": "Delwedd proffil chatbot",
+  "labelUser": "Defnyddiwr:",
+  "labelChatbot": "Chatbot:",
+  "chatInputPlaceholder": "Teipio eich neges",
+  "sendButton": "Anfon"
 }
