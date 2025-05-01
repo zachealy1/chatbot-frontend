@@ -1,13 +1,12 @@
 {% from "govuk/components/header/macro.njk" import govukHeader %}
 {% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
-{% from "govuk/components/input/macro.njk" import govukInput %}
-{% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% extends "template.njk" %}
 
 {% block pageTitle %}
-  HMCTS chatbot
+  {{ __("appName") }}
 {% endblock %}
 
 {% block header %}
@@ -22,13 +21,11 @@
   >
     <div class="govuk-width-container">
       <div class="govuk-service-navigation__container service-navigation--login-layout">
-      <span class="govuk-service-navigation__service-name">
-        <a>
-          {{ __("appName") }}
-        </a>
-      </span>
+        <span class="govuk-service-navigation__service-name">
+          <a>{{ __("appName") }}</a>
+        </span>
 
-        <!-- Language switcher added inside the same container -->
+        <!-- Language switcher -->
         <nav class="language-select" aria-label="Language switcher">
           <ul class="language-select__list">
             <li class="language-select__list-item">
@@ -48,11 +45,10 @@
                   lang="cy"
                   rel="alternate"
                   class="govuk-link"
-                  data-journey-click="link - click:lang-select:Cymraeg"
                 >
-                <span class="govuk-visually-hidden">
-                  Newid yr iaith ir Gymraeg
-                </span>
+                  <span class="govuk-visually-hidden">
+                    Newid yr iaith ir Gymraeg
+                  </span>
                   <span aria-hidden="true">Cymraeg</span>
                 </a>
               {% endif %}
@@ -65,122 +61,100 @@
 {% endblock %}
 
 {% block content %}
-  <h1 class="govuk-heading-xl">Create an account</h1>
+  <h1 class="govuk-heading-xl">{{ __("createAccountHeading") }}</h1>
 
   <p class="govuk-body">
-    Already have an account? <a href="/" class="govuk-link">Sign in here</a>.
+    {{ __("alreadyHaveAccount") | safe }} <a href="/" class="govuk-link">{{ __("signInHereLink") | safe }}</a>.
   </p>
 
-  <!-- Server-side error summary -->
   {% if errors %}
     <div class="govuk-error-summary" role="alert" tabindex="-1">
-      <h2 class="govuk-error-summary__title">There is a problem</h2>
+      <h2 class="govuk-error-summary__title">
+        {{ __("errorSummaryTitle") }}
+      </h2>
       <ul class="govuk-list govuk-error-summary__list">
-        {% for error in errors %}
-          <li>{{ error }}</li>
+        {% for err in errors %}
+          <li>{{ err }}</li>
         {% endfor %}
       </ul>
     </div>
   {% endif %}
 
   <form action="/register" method="POST" novalidate>
-    <!-- Username Section -->
     <div class="govuk-form-group">
-      <h1 class="govuk-label-wrapper">
-        <label class="govuk-label--l govuk-label" for="username">Username</label>
-      </h1>
+      <label class="govuk-label govuk-label--l" for="username">
+        {{ __("usernameLabel") }}
+      </label>
       <input
         class="govuk-input govuk-!-width-one-half"
         id="username"
         name="username"
         type="text"
-        placeholder="Enter your username"
+        placeholder="{{ __("usernamePlaceholder") }}"
         required
       >
     </div>
 
-    <!-- Email Section -->
     <div class="govuk-form-group">
-      <h1 class="govuk-label-wrapper">
-        <label class="govuk-label--l govuk-label" for="email">Email</label>
-      </h1>
+      <label class="govuk-label govuk-label--l" for="email">
+        {{ __("emailLabel") }}
+      </label>
       <input
         class="govuk-input govuk-!-width-one-half"
         id="email"
         name="email"
         type="email"
-        placeholder="Enter your email address"
+        placeholder="{{ __("emailPlaceholder") }}"
         required
       >
     </div>
 
-    <!-- Date of Birth Section -->
-    {% set dateInputParams = {
+    {# Date of birth #}
+    {% set dobParams = {
       fieldset: {
         legend: {
-          text: "Date of birth",
+          text: __("dateOfBirthLegend"),
           isPageHeading: true,
           classes: "govuk-fieldset__legend--l"
         }
       },
-      hint: {
-        text: "For example, 27 3 1985"
-      },
+      hint: { text: __("dateOfBirthHint") },
       id: "date-of-birth",
       namePrefix: "date-of-birth",
       items: [
-        {
-          classes: "govuk-input--width-2 {% if errors.dateOfBirth %}govuk-input--error{% endif %}",
-          name: "day",
-          value: day | default('')
-        },
-        {
-          classes: "govuk-input--width-2 {% if errors.dateOfBirth %}govuk-input--error{% endif %}",
-          name: "month",
-          value: month | default('')
-        },
-        {
-          classes: "govuk-input--width-4 {% if errors.dateOfBirth %}govuk-input--error{% endif %}",
-          name: "year",
-          value: year | default('')
-        }
+        { classes: "govuk-input--width-2", name: "day", value: day|default('') },
+        { classes: "govuk-input--width-2", name: "month", value: month|default('') },
+        { classes: "govuk-input--width-4", name: "year", value: year|default('') }
       ]
     } %}
-
     {% if errors.dateOfBirth %}
-      {% set dateInputParams = dateInputParams | merge({
-        errorMessage: {
-          text: errors.dateOfBirth
-        }
+      {% set dobParams = dobParams | merge({
+        errorMessage: { text: errors.dateOfBirth }
       }) %}
     {% endif %}
+    {{ govukDateInput(dobParams) }}
 
-    {{ govukDateInput(dateInputParams) }}
-
-    <!-- Password Section -->
-    <div class="govuk-form-group" id="password-section">
-      <h1 class="govuk-label-wrapper">
-        <label class="govuk-label--l govuk-label">Password</label>
-      </h1>
+    {# Password #}
+    <div class="govuk-form-group">
+      <label class="govuk-label govuk-label--l" for="password">
+        {{ __("passwordLabel") }}
+      </label>
       <div id="password-hint" class="govuk-hint">
-        <p class="govuk-body">Your password must:</p>
+        <p class="govuk-body">{{ __("passwordHintTitle") }}</p>
         <ul class="govuk-list govuk-list--bullet">
-          <li>Be at least 8 characters long</li>
-          <li>Include an uppercase letter</li>
-          <li>Include a lowercase letter</li>
-          <li>Include a number</li>
-          <li>Include a special character (e.g., @, $, !, %, *, ?)</li>
+          <li>{{ __("passwordCriteriaBullet1") }}</li>
+          <li>{{ __("passwordCriteriaBullet2") }}</li>
+          <li>{{ __("passwordCriteriaBullet3") }}</li>
+          <li>{{ __("passwordCriteriaBullet4") }}</li>
+          <li>{{ __("passwordCriteriaBullet5") }}</li>
         </ul>
       </div>
-
-      <!-- New Password -->
-      <label class="govuk-label" for="password">New Password</label>
       <input
         class="govuk-input govuk-input-password govuk-!-width-one-half"
         id="password"
         name="password"
         type="password"
-        placeholder="Leave blank to keep the current password"
+        placeholder="{{ __("passwordPlaceholder") }}"
         aria-describedby="password-hint"
       >
       <button
@@ -188,32 +162,34 @@
         class="govuk-button govuk-button--secondary govuk-button-password--secondary toggle-button"
         data-target="password"
         data-module="govuk-button"
-        aria-expanded="false">
-        Show
+        aria-expanded="false"
+      >
+        {{ __("showButton") }}
       </button>
 
-      <!-- Confirm New Password -->
-      <label class="govuk-label" for="confirm-password">Confirm New Password</label>
+      <label class="govuk-label" for="confirm-password">
+        {{ __("confirmPasswordLabel") }}
+      </label>
       <input
         class="govuk-input govuk-!-width-one-half"
         id="confirm-password"
         name="confirmPassword"
         type="password"
-        placeholder="Re-enter the new password"
+        placeholder="{{ __("confirmPasswordPlaceholder") }}"
       >
       <button
         type="button"
         class="govuk-button govuk-button--secondary toggle-button"
         data-target="confirm-password"
         data-module="govuk-button"
-        aria-expanded="false">
-        Show
+        aria-expanded="false"
+      >
+        {{ __("showButton") }}
       </button>
     </div>
 
-    <!-- Submit Button -->
     {{ govukButton({
-      text: "Save Changes",
+      text:  __("saveChangesButton"),
       classes: "govuk-!-margin-top-3",
       type: "submit"
     }) }}
@@ -223,5 +199,4 @@
   <script src="passwordValidationRegister-dev.js"></script>
   <script src="dateOfBirthValidation-dev.js"></script>
   <script src="emailValidation-dev.js"></script>
-
 {% endblock %}
