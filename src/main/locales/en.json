@@ -89,5 +89,6 @@
   "labelConfirmPassword": "Confirm new password",
   "placeholderConfirmPassword": "Re-enter the new password",
   "buttonShow": "Show",
-  "buttonSaveChanges": "Save changes"
+  "buttonSaveChanges": "Save changes",
+  "loginSessionError": "Something went wrong logging you in. Please try again."
 }

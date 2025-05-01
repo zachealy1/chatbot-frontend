@@ -113,41 +113,57 @@ function ensureAuthenticated(req: express.Request, res: express.Response, next: 
 }
 
 app.post('/login', async (req, res, next) => {
-  try {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
+  // 1) Pick up the lang cookie (defaults to 'en')
+  const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
 
-    // 1) fetch CSRF token…
-    const csrfResponse = await axios.get('http://localhost:4550/csrf', { withCredentials: true });
+  // 2) Create a cookie‐jar and seed it with our lang cookie
+  const jar = new CookieJar();
+  jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
+
+  // 3) Wrap axios so it uses our jar AND auto‐handles XSRF from Spring
+  const client = wrapper(axios.create({
+    baseURL: 'http://localhost:4550',
+    jar,
+    withCredentials: true,
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN'
+  }));
+
+  try {
+    // 4) Fetch CSRF token
+    const csrfResponse = await client.get('/csrf');
     const csrfToken = csrfResponse.data.csrfToken;
 
-    // 2) capture the cookie…
-    const csrfCookieHeader = csrfResponse.headers['set-cookie'];
-    const csrfCookie = Array.isArray(csrfCookieHeader) ? csrfCookieHeader.join('; ') : csrfCookieHeader;
-
-    // 3) send login to Spring…
-    const loginResponse = await axios.post(
-      'http://localhost:4550/login/chat',
+    // 5) Perform login
+    const loginResponse = await client.post(
+      '/login/chat',
       { username, password },
-      {
-        withCredentials: true,
-        headers: {
-          'X-XSRF-TOKEN': csrfToken,
-          Cookie: csrfCookie,
-        },
-      }
+      { headers: { 'X-XSRF-TOKEN': csrfToken } }
     );
 
-    // 4) persist the returned cookie & CSRF token in session…
+    // 6) Persist Spring’s session cookie & CSRF token in our Express session
     const setCookieHeader = loginResponse.headers['set-cookie'];
-    const loginCookie = Array.isArray(setCookieHeader) ? setCookieHeader.join('; ') : setCookieHeader;
+    const loginCookie = Array.isArray(setCookieHeader)
+      ? setCookieHeader.join('; ')
+      : setCookieHeader;
     (req.session as any).springSessionCookie = loginCookie;
     (req.session as any).csrfToken = csrfToken;
 
-    // 5) save the session and complete passport login…
+    // 7) Save and complete passport login
     req.session.save(err => {
-      if (err) console.error('Error saving session:', err);
+      if (err) {
+        console.error('Error saving session:', err);
+        return res.render('login', {
+          error: req.__('loginSessionError'),
+          username
+        });
+      }
       req.login({ username, springSessionCookie: loginCookie, csrfToken }, err => {
-        if (err) return next(err);
+        if (err) {
+          console.error('Passport login error:', err);
+          return next(err);
+        }
         return res.redirect('/chat');
       });
     });
@@ -155,18 +171,19 @@ app.post('/login', async (req, res, next) => {
   } catch (err: any) {
     console.error('Full login error:', err.response || err.message);
 
-    // Look for a message from the backend, otherwise fall back to our localized string
-    const backendMsg = err.response?.data;
-    const errorMessage = backendMsg
-      ? backendMsg
-      : req.__('loginInvalidCredentials');
+    // If Spring returned a text message, use it; otherwise fall back to our i18n key
+    const backendMsg = typeof err.response?.data === 'string'
+      ? err.response.data
+      : null;
+    const errorMessage = backendMsg || req.__('loginInvalidCredentials');
 
     return res.render('login', {
       error: errorMessage,
-      username: req.body.username
+      username
     });
   }
 });
+
 
 app.get('/logout', (req, res) => {
   req.logout(err => {

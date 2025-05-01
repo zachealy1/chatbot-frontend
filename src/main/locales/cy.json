@@ -89,5 +89,6 @@
   "labelConfirmPassword": "Cadarnhau cyfrinair newydd",
   "placeholderConfirmPassword": "Rhowch y cyfrinair newydd eto",
   "buttonShow": "Dangos",
-  "buttonSaveChanges": "Cadw newidiadau"
+  "buttonSaveChanges": "Cadw newidiadau",
+  "loginSessionError": "Digwyddodd gwall wrth fewngofnodi. Ceisiwch eto os gwelwch yn dda."
 }
