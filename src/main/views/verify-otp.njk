@@ -14,20 +14,16 @@
     classes: "govuk-header--full-width-border"
   }) }}
 
-  <section
-    aria-label="Service information"
-    class="govuk-service-navigation"
-    data-module="govuk-service-navigation"
-  >
+  <section aria-label="Service information"
+           class="govuk-service-navigation"
+           data-module="govuk-service-navigation">
     <div class="govuk-width-container">
       <div class="govuk-service-navigation__container service-navigation--login-layout">
-      <span class="govuk-service-navigation__service-name">
-        <a>
-          {{ __("appName") }}
-        </a>
-      </span>
+        <span class="govuk-service-navigation__service-name">
+          <a>{{ __("appName") }}</a>
+        </span>
 
-        <!-- Language switcher added inside the same container -->
+        <!-- Language switcher -->
         <nav class="language-select" aria-label="Language switcher">
           <ul class="language-select__list">
             <li class="language-select__list-item">
@@ -41,17 +37,12 @@
               {% if lang == "cy" %}
                 <span aria-current="true">Cymraeg</span>
               {% else %}
-                <a
-                  href="?lang=cy"
-                  hreflang="cy"
-                  lang="cy"
-                  rel="alternate"
-                  class="govuk-link"
-                  data-journey-click="link - click:lang-select:Cymraeg"
-                >
-                <span class="govuk-visually-hidden">
-                  Newid yr iaith ir Gymraeg
-                </span>
+                <a href="?lang=cy" hreflang="cy" lang="cy" rel="alternate"
+                   class="govuk-link"
+                   data-journey-click="link - click:lang-select:Cymraeg">
+                  <span class="govuk-visually-hidden">
+                    Newid yr iaith ir Gymraeg
+                  </span>
                   <span aria-hidden="true">Cymraeg</span>
                 </a>
               {% endif %}
@@ -64,31 +55,35 @@
 {% endblock %}
 
 {% block content %}
-  <h1 class="govuk-heading-xl">Enter one time password</h1>
+  <h1 class="govuk-heading-xl">{{ __("enterOtpHeading") }}</h1>
 
-  <!-- Success Alert -->
   {% if sent %}
-    <div class="govuk-notification-banner govuk-notification-banner--success" role="alert" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+    <div class="govuk-notification-banner govuk-notification-banner--success"
+         role="alert"
+         aria-labelledby="govuk-notification-banner-title"
+         data-module="govuk-notification-banner">
       <div class="govuk-notification-banner__header">
-        <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-          Success
+        <h2 class="govuk-notification-banner__title"
+            id="govuk-notification-banner-title">
+          {{ __("successTitle") }}
         </h2>
       </div>
       <div class="govuk-notification-banner__content">
         <h3 class="govuk-notification-banner__heading">
-          A new email has been sent successfully
+          {{ __("otpSentMessage") }}
         </h3>
-        <p class="govuk-body">Contact <a class="govuk-notification-banner__link" href="#">example@department.gov.uk</a> if you think there’s a problem.</p>
+        <p class="govuk-body">{{ __("contactSupportHtml") | safe }}</p>
       </div>
     </div>
   {% endif %}
 
-  <!-- Start of Form -->
   <form action="/forgot-password/verify-otp" method="post" novalidate>
     <div class="govuk-form-group {% if error %}govuk-form-group--error{% endif %}" id="otp-group">
-      <label class="govuk-label" for="one-time-password">One time password</label>
+      <label class="govuk-label" for="one-time-password">
+        {{ __("oneTimePasswordLabel") }}
+      </label>
       <div id="one-time-password-hint" class="govuk-hint">
-        Enter the one-time password we emailed to you.
+        {{ __("oneTimePasswordHint") }}
       </div>
       {% if error %}
         <p id="one-time-password-error" class="govuk-error-message">
@@ -103,14 +98,20 @@
         aria-describedby="one-time-password-hint {% if error %}one-time-password-error{% endif %}"
       >
     </div>
-    <button type="submit" class="govuk-button" id="continue-button">Continue</button>
+
+    {{ govukButton({
+      text: __("continueButton"),
+      type: "submit",
+      attributes: { id: "continue-button" }
+    }) }}
+
     <button
       type="submit"
       class="govuk-button govuk-button--secondary"
       formaction="/forgot-password/resend-otp"
       id="resend-button"
     >
-      Resend Email
+      {{ __("resendEmailButton") }}
     </button>
   </form>
 
