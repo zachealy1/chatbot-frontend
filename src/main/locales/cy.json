@@ -39,5 +39,15 @@
   "otpSentMessage": "Anfonwyd e-bost newydd yn llwyddiannus",
   "oneTimePasswordLabel": "Cyfrinair un-amser",
   "oneTimePasswordHint": "Nodwch y cyfrinair un-amser a anfonwyd atom drwy e-bost.",
-  "resendEmailButton": "Ail-anfon e-bost"
+  "resendEmailButton": "Ail-anfon e-bost",
+  "resetPasswordHeading": "Ailosod cyfrinair",
+  "problemTitle": "Mae problem",
+  "passwordMustTitle": "Mae’n rhaid i’ch cyfrinair:",
+  "passwordRule1": "Bod o leiaf 8 nod o hyd",
+  "passwordRule2": "Cynnwys llythyren gyntaf yn fawr",
+  "passwordRule3": "Cynnwys llythyren gyntaf yn fach",
+  "passwordRule4": "Cynnwys rhif",
+  "passwordRule5": "Cynnwys cymeriad arbennig (e.e., @, $, !, %, *, ?)",
+  "newPasswordLabel": "Cyfrinair Newydd",
+  "newPasswordPlaceholder": "Gadewch yn wag i gadw’r cyfrinair presennol"
 }

@@ -39,5 +39,15 @@
   "otpSentMessage": "A new email has been sent successfully",
   "oneTimePasswordLabel": "One-time password",
   "oneTimePasswordHint": "Enter the one-time password we emailed to you.",
-  "resendEmailButton": "Resend Email"
+  "resendEmailButton": "Resend Email",
+  "resetPasswordHeading": "Reset password",
+  "problemTitle": "There is a problem",
+  "passwordMustTitle": "Your password must:",
+  "passwordRule1": "Be at least 8 characters long",
+  "passwordRule2": "Include an uppercase letter",
+  "passwordRule3": "Include a lowercase letter",
+  "passwordRule4": "Include a number",
+  "passwordRule5": "Include a special character (e.g., @, $, !, %, *, ?)",
+  "newPasswordLabel": "New Password",
+  "newPasswordPlaceholder": "Leave blank to keep the current password"
 }
