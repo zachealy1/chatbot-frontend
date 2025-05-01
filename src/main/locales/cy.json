@@ -60,5 +60,14 @@
   "labelUser": "Defnyddiwr:",
   "labelChatbot": "Chatbot:",
   "chatInputPlaceholder": "Teipio eich neges",
-  "sendButton": "Anfon"
+  "sendButton": "Anfon",
+  "chatHistoryCardTitle": "Hanes sgwrs",
+  "actionOpen": "Agor",
+  "actionOpenVisuallyHidden": "Agor hanes sgwrs hwn",
+  "actionDelete": "Dileu",
+  "actionDeleteVisuallyHidden": "Dileu hanes sgwrs hwn",
+  "keyDate": "Dyddiad",
+  "keyDescription": "Disgrifiad",
+  "importantTitle": "Pwysig",
+  "noChatHistoryFound": "Heb ganfod hanes sgwrs."
 }

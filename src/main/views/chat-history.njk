@@ -5,7 +5,7 @@
 {% extends "template.njk" %}
 
 {% block pageTitle %}
-  HMCTS chatbot
+  {{ __("appName") }}
 {% endblock %}
 
 {% block header %}
@@ -19,10 +19,8 @@
 
         <!-- Service name -->
         <span class="govuk-service-navigation__service-name">
-        <a>
-          HMCTS chatbot
-        </a>
-      </span>
+          <a>{{ __("appName") }}</a>
+        </span>
 
         <!-- Main navigation links -->
         <nav aria-label="Menu" class="govuk-service-navigation__wrapper">
@@ -31,37 +29,31 @@
             class="govuk-service-navigation__toggle govuk-js-service-navigation-toggle"
             aria-controls="navigation"
             hidden
-          >
-            Menu
-          </button>
+          >Menu</button>
           <ul class="govuk-service-navigation__list" id="navigation">
             <li class="govuk-service-navigation__item">
               <a class="govuk-service-navigation__link" href="/chat">
-                Chat
+                {{ __("navChat") }}
               </a>
             </li>
             <li class="govuk-service-navigation__item govuk-service-navigation__item--active">
               <a class="govuk-service-navigation__link" href="/chat-history" aria-current="page">
-                Chat history
+                {{ __("navChatHistory") }}
               </a>
             </li>
             <li class="govuk-service-navigation__item">
               <a class="govuk-service-navigation__link" href="/contact-support">
-                Contact support
+                {{ __("navContactSupport") }}
               </a>
             </li>
             <li class="govuk-service-navigation__item">
               <a class="govuk-service-navigation__link" href="/account">
-                Account
+                {{ __("navAccount") }}
               </a>
             </li>
             <li class="govuk-service-navigation__item">
-              <a
-                class="govuk-service-navigation__link"
-                href="/logout"
-                id="logoutLink"
-              >
-                Logout
+              <a class="govuk-service-navigation__link" href="/logout" id="logoutLink">
+                {{ __("navLogout") }}
               </a>
             </li>
           </ul>
@@ -108,18 +100,18 @@
         {% for chat in chats %}
           {{ govukSummaryList({
             card: {
-              title: { text: "Chat History" },
+              title:      { text: __("chatHistoryCardTitle") },
               actions: {
                 items: [
                   {
-                    href: "/open-chat-history?chatId=" ~ chat.id,
-                    text: "Open",
-                    visuallyHiddenText: "Open this chat history"
+                    href:                   "/open-chat-history?chatId=" ~ chat.id,
+                    text:                   __("actionOpen"),
+                    visuallyHiddenText:     __("actionOpenVisuallyHidden")
                   },
                   {
-                    href: "/delete-chat-history?chatId=" ~ chat.id,
-                    text: "Delete",
-                    visuallyHiddenText: "Delete this chat history",
+                    href:                   "/delete-chat-history?chatId=" ~ chat.id,
+                    text:                   __("actionDelete"),
+                    visuallyHiddenText:     __("actionDeleteVisuallyHidden"),
                     attributes: {
                     class: "delete-chat",
                     "data-chat-id": chat.id
@@ -130,26 +122,27 @@
             },
             rows: [
               {
-                key: { text: "Date" },
+                key:   { text: __("keyDate") },
                 value: { html: chat.createdAt }
               },
               {
-                key: { text: "Description" },
+                key:   { text: __("keyDescription") },
                 value: { html: chat.description }
               }
             ]
           }) }}
         {% endfor %}
       {% else %}
-        <div class="govuk-notification-banner notification-banner" role="region" aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
+        <div class="govuk-notification-banner notification-banner" role="region"
+             aria-labelledby="govuk-notification-banner-title" data-module="govuk-notification-banner">
           <div class="govuk-notification-banner__header">
             <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-              Important
+              {{ __("importantTitle") }}
             </h2>
           </div>
           <div class="govuk-notification-banner__content">
             <p class="govuk-notification-banner__heading">
-              No chat history found.
+              {{ __("noChatHistoryFound") }}
             </p>
           </div>
         </div>

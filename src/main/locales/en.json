@@ -60,5 +60,14 @@
   "labelUser": "User:",
   "labelChatbot": "Chatbot:",
   "chatInputPlaceholder": "Type your message",
-  "sendButton": "Send"
+  "sendButton": "Send",
+  "chatHistoryCardTitle": "Chat history",
+  "actionOpen": "Open",
+  "actionOpenVisuallyHidden": "Open this chat history",
+  "actionDelete": "Delete",
+  "actionDeleteVisuallyHidden": "Delete this chat history",
+  "keyDate": "Date",
+  "keyDescription": "Description",
+  "importantTitle": "Important",
+  "noChatHistoryFound": "No chat history found."
 }
