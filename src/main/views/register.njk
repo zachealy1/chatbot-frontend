@@ -179,18 +179,18 @@
         </ul>
       </div>
 
+      <label class="govuk-label" for="password">{{ __("labelNewPassword") }}</label>
       {% if fieldErrors.password %}
         <p id="password-error" class="govuk-error-message">
           {{ fieldErrors.password }}
         </p>
       {% endif %}
-      <label class="govuk-label" for="password">{{ __("labelNewPassword") }}</label>
       <input
         class="govuk-input govuk-input-password govuk-!-width-one-half{% if fieldErrors.password %} govuk-input--error{% endif %}"
         id="password"
         name="password"
         type="password"
-        placeholder="{{ __("passwordPlaceholder") }}"
+        placeholder="{{ __("newPasswordPlaceholder") }}"
         aria-describedby="password-hint{% if fieldErrors.password %} password-error{% endif %}"
       >
 
@@ -204,15 +204,14 @@
         {{ __("showButton") }}
       </button>
 
-
+      <label class="govuk-label" for="confirm-password">
+        {{ __("confirmPasswordLabel") }}
+      </label>
       {% if fieldErrors.confirmPassword %}
         <p id="confirm-password-error" class="govuk-error-message">
           {{ fieldErrors.confirmPassword }}
         </p>
       {% endif %}
-      <label class="govuk-label" for="confirm-password">
-        {{ __("confirmPasswordLabel") }}
-      </label>
       <input
         class="govuk-input govuk-!-width-one-half{% if fieldErrors.confirmPassword %} govuk-input--error{% endif %}"
         id="confirm-password"

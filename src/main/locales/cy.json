@@ -102,5 +102,7 @@
   "otpVerifyError": "Digwyddodd gwall wrth wirio’r OTP. Ceisiwch eto.",
   "passwordRequired": "Nodwch gyfrinair newydd os gwelwch yn dda.",
   "resetSessionMissing": "Methu adfer y cyfrinair—mae’r sesiwn wedi dod i ben. Dechreuwch eto, os gwelwch yn dda.",
-  "resetError": "Digwyddodd gwall wrth adfer eich cyfrinair. Ceisiwch eto yn nes ymlaen."
+  "resetError": "Digwyddodd gwall wrth adfer eich cyfrinair. Ceisiwch eto yn nes ymlaen.",
+  "sessionExpired": "Mae’r sesiwn wedi dod i ben neu’n annilys. Mewngofnodwch eto, os gwelwch yn dda.",
+  "accountUpdateError": "Digwyddodd gwall wrth ddiweddaru eich cyfrif. Ceisiwch eto’n ddiweddarach."
 }

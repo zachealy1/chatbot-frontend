@@ -49,7 +49,7 @@
   "passwordRule4": "Include a number",
   "passwordRule5": "Include a special character (e.g., @, $, !, %, *, ?)",
   "newPasswordLabel": "New Password",
-  "newPasswordPlaceholder": "Leave blank to keep the current password",
+  "newPasswordPlaceholder": "Enter your new password",
   "navChat": "Chat",
   "navChatHistory": "Chat History",
   "navContactSupport": "Contact Support",
@@ -102,5 +102,7 @@
   "otpVerifyError": "An error occurred while verifying the OTP. Please try again.",
   "passwordRequired": "Please enter a new password.",
   "resetSessionMissing": "Cannot reset password—session expired. Please start again.",
-  "resetError": "An error occurred while resetting your password. Please try again later."
+  "resetError": "An error occurred while resetting your password. Please try again later.",
+  "sessionExpired": "Session expired or invalid. Please log in again.",
+  "accountUpdateError": "An error occurred while updating your account. Please try again later."
 }

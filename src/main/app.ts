@@ -601,60 +601,121 @@ app.post('/account/update', async (req, res) => {
     'date-of-birth-year': year,
   } = req.body;
 
-  const dateOfBirth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-  const payload = { email, username, dateOfBirth, password, confirmPassword };
+  // 1) Pick up the lang cookie (defaults to 'en')
+  const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
 
-  // Retrieve the stored Spring Boot session cookie from req.user or req.session.
-  const storedCookie = (req.user as any)?.springSessionCookie || (req.session as any)?.springSessionCookie || '';
+  // 2) Server-side validation
+  const fieldErrors: Record<string,string> = {};
 
-  if (!storedCookie) {
-    return res.status(401).render('account', {
-      errors: ['Session expired or invalid. Please log in again.'],
+  // Username
+  if (!username?.trim()) {
+    fieldErrors.username = req.__('usernameRequired');
+  }
+
+  // Email
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    fieldErrors.email = req.__('emailInvalid');
+  }
+
+  // Date of birth
+  const dob = new Date(
+    `${year?.padStart(2,'0')}-${month?.padStart(2,'0')}-${day?.padStart(2,'0')}`
+  );
+  const isPast = (d: Date) => d instanceof Date && !isNaN(d.getTime()) && d < new Date();
+  if (!day || !month || !year || !isPast(dob)) {
+    fieldErrors.dateOfBirth = req.__('dobInvalid');
+  }
+
+  // Optional password change
+  if (password || confirmPassword) {
+    const strongPwd = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
+    // 1) Password required & strength
+    if (!password) {
+      fieldErrors.password = req.__('passwordRequired');
+    } else if (!strongPwd.test(password)) {
+      fieldErrors.password = req.__('passwordCriteria');
+    }
+
+    // 2) Confirm-password required, strength, & match
+    if (!confirmPassword) {
+      fieldErrors.confirmPassword = req.__('confirmPasswordRequired');
+    } else if (!strongPwd.test(confirmPassword)) {
+      fieldErrors.confirmPassword = req.__('passwordCriteria');
+    } else if (password !== confirmPassword) {
+      fieldErrors.confirmPassword = req.__('passwordsMismatch');
+    }
+  }
+
+  // If any validation failed, re-render with inline errors
+  if (Object.keys(fieldErrors).length) {
+    return res.render('account', {
+      lang,
+      fieldErrors,
       username,
       email,
       day,
       month,
-      year,
+      year
     });
   }
 
-  try {
-    // Create a cookie jar and add the stored session cookie.
-    const jar = new CookieJar();
-    jar.setCookieSync(storedCookie, 'http://localhost:4550');
+  // 3) Prepare payload for backend
+  const dateOfBirth = dob.toISOString().slice(0,10);
+  const payload = { username, email, dateOfBirth, password, confirmPassword };
 
-    // Create an axios client with cookie jar support.
-    const client = wrapper(
-      axios.create({
-        jar,
-        withCredentials: true,
-        xsrfCookieName: 'XSRF-TOKEN',
-        xsrfHeaderName: 'X-XSRF-TOKEN',
-      })
-    );
+  // 4) Retrieve Spring session cookie
+  const storedCookie =
+    (req.user as any)?.springSessionCookie ||
+    (req.session as any)?.springSessionCookie ||
+    '';
 
-    // Request the CSRF token from the backend.
-    const csrfResponse = await client.get('http://localhost:4550/csrf');
-    const csrfToken = csrfResponse.data.csrfToken;
-    console.log('Retrieved CSRF token for update:', csrfToken);
-
-    // Send the account update POST request with the CSRF token.
-    await client.post('http://localhost:4550/account/update', payload, {
-      headers: {
-        'X-XSRF-TOKEN': csrfToken,
-      },
-    });
-
-    return res.redirect('/account?updated=true');
-  } catch (error) {
-    console.error('Error updating account in backend:', error);
-    return res.render('account', {
-      errors: ['An error occurred during account update. Please try again later.'],
+  if (!storedCookie) {
+    fieldErrors.general = req.__('sessionExpired');
+    return res.status(401).render('account', {
+      lang,
+      fieldErrors,
       username,
       email,
       day,
       month,
-      year,
+      year
+    });
+  }
+
+  // 5) Create axios client with CSRF and lang cookie
+  const jar = new CookieJar();
+  jar.setCookieSync(storedCookie, 'http://localhost:4550');
+  const client = wrapper(axios.create({
+    baseURL: 'http://localhost:4550',
+    jar,
+    withCredentials: true,
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN'
+  }));
+
+  try {
+    // Fetch CSRF token
+    const { data: { csrfToken } } = await client.get('/csrf');
+
+    // Submit the update
+    await client.post('/account/update', payload, {
+      headers: { 'X-XSRF-TOKEN': csrfToken }
+    });
+
+    // On success, redirect back with a success flag
+    return res.redirect(`/account?updated=true&lang=${lang}`);
+  } catch (err: any) {
+    console.error('Error updating account in backend:', err.response || err.message);
+    fieldErrors.general = req.__('accountUpdateError');
+    return res.render('account', {
+      lang,
+      fieldErrors,
+      username,
+      email,
+      day,
+      month,
+      year
     });
   }
 });
