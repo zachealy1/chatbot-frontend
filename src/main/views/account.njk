@@ -107,16 +107,6 @@
     </div>
   {% endif %}
 
-  {# General error summary #}
-  {% if fieldErrors.general %}
-    <div class="govuk-error-summary" role="alert" tabindex="-1">
-      <h2 class="govuk-error-summary__title">{{ __("errorSummaryTitle") }}</h2>
-      <ul class="govuk-list govuk-error-summary__list">
-        <li>{{ fieldErrors.general }}</li>
-      </ul>
-    </div>
-  {% endif %}
-
   <form action="/account/update" method="POST" novalidate>
 
     {# USERNAME #}
@@ -282,4 +272,6 @@
       type: "submit"
     }) }}
   </form>
+
+  <script src="logout-dev.js"></script>
 {% endblock %}
