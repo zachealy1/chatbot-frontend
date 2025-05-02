@@ -260,80 +260,83 @@ app.post('/forgot-password/enter-email', async (req, res) => {
   }
 });
 
-app.post('/forgot-password/reset-password', async (req, res) => {
+app.post('/forgot-password/reset-password', async (req, res, next) => {
   const { password, confirmPassword } = req.body;
-
-  console.log('[ForgotPassword] Received new password & confirmPassword:', password, confirmPassword);
-
-  if (password !== confirmPassword) {
-    return res.render('reset-password', {
-      error: 'Passwords do not match.',
-    });
-  }
-
-  const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  if (!passwordCriteriaRegex.test(password)) {
-    return res.render('reset-password', {
-      error:
-        'Your password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.',
-    });
-  }
-
+  const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
   const email = (req.session as any).email;
-  const otp = (req.session as any).verifiedOtp;
+  const otp   = (req.session as any).verifiedOtp;
+
+  // 1) Server-side validation
+  const fieldErrors: Record<string,string> = {};
+
+  if (!password) {
+    fieldErrors.password = req.__('passwordRequired');
+  } else {
+    const strongPwd = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+    if (!strongPwd.test(password)) {
+      fieldErrors.password = req.__('passwordCriteria');
+    }
+  }
+
+  if (!confirmPassword) {
+    fieldErrors.confirmPassword = req.__('confirmPasswordRequired');
+  } else if (password !== confirmPassword) {
+    fieldErrors.confirmPassword = req.__('passwordsMismatch');
+  }
 
   if (!email || !otp) {
-    console.log('[ForgotPassword] Missing email or otp in session.');
+    fieldErrors.general = req.__('resetSessionMissing');
+  }
+
+  // If any errors, re-render with those errors
+  if (Object.keys(fieldErrors).length) {
     return res.render('reset-password', {
-      error: 'Cannot reset password without a valid email and OTP. Please start again.',
+      lang,
+      fieldErrors,
+      password,
+      confirmPassword
     });
   }
 
+  // 2) Prepare Axios + CSRF + lang cookie
+  const jar = new CookieJar();
+  jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
+  const client = wrapper(axios.create({
+    baseURL: 'http://localhost:4550',
+    jar,
+    withCredentials: true,
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN'
+  }));
+
   try {
-    const jar = new CookieJar();
+    // 3) Fetch CSRF token
+    const { data: { csrfToken } } = await client.get('/csrf');
 
-    const client = wrapper(
-      axios.create({
-        jar,
-        withCredentials: true,
-        xsrfCookieName: 'XSRF-TOKEN',
-        xsrfHeaderName: 'X-XSRF-TOKEN',
-      })
+    // 4) Call backend to reset-password
+    await client.post(
+      '/forgot-password/reset-password',
+      { email, otp, password, confirmPassword },
+      { headers: { 'X-XSRF-TOKEN': csrfToken } }
     );
 
-    console.log('[ForgotPassword] Requesting CSRF token from /csrf...');
-    const csrfResponse = await client.get('http://localhost:4550/csrf');
-    const csrfToken = csrfResponse.data.csrfToken;
-    console.log('[ForgotPassword] Retrieved CSRF token for reset-password:', csrfToken);
+    // 5) On success, redirect to login with reset banner
+    return res.redirect(`/login?passwordReset=true&lang=${lang}`);
 
-    console.log('[ForgotPassword] Sending POST /forgot-password/reset-password to backend...');
-    const response = await client.post(
-      'http://localhost:4550/forgot-password/reset-password',
-      {
-        email,
-        otp,
-        password,
-        confirmPassword,
-      },
-      {
-        headers: { 'X-XSRF-TOKEN': csrfToken },
-      }
-    );
+  } catch (err: any) {
+    console.error('[ForgotPassword] Reset error:', err.response || err.message);
 
-    console.log('[ForgotPassword] Password reset call succeeded:', response.data);
-
-    return res.redirect('/login?passwordReset=true');
-  } catch (error) {
-    console.error('[ForgotPassword] Error calling backend /forgot-password/reset-password:', error);
-
-    let errorMsg = 'An error occurred while resetting your password. Please try again.';
-    if (error.response && error.response.data) {
-      errorMsg = error.response.data;
-    }
-    console.log('[ForgotPassword] Rendering reset-password with error:', errorMsg);
+    // backend error msg or fallback
+    fieldErrors.general =
+      typeof err.response?.data === 'string'
+        ? err.response.data
+        : req.__('resetError');
 
     return res.render('reset-password', {
-      error: errorMsg,
+      lang,
+      fieldErrors,
+      password,
+      confirmPassword
     });
   }
 });

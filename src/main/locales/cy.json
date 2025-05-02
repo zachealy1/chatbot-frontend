@@ -99,5 +99,8 @@
   "forgotPasswordError": "Digwyddodd gwall. Ceisiwch eto yn nes ymlaen.",
   "noEmailInSession": "Dim e-bost yn y sesiwn. Sicrhewch eich bod wedi gofyn am adfer cyfrinair yn gyntaf.",
   "otpRequired": "Nodwch y cod unigryw (OTP).",
-  "otpVerifyError": "Digwyddodd gwall wrth wirio’r OTP. Ceisiwch eto."
+  "otpVerifyError": "Digwyddodd gwall wrth wirio’r OTP. Ceisiwch eto.",
+  "passwordRequired": "Nodwch gyfrinair newydd os gwelwch yn dda.",
+  "resetSessionMissing": "Methu adfer y cyfrinair—mae’r sesiwn wedi dod i ben. Dechreuwch eto, os gwelwch yn dda.",
+  "resetError": "Digwyddodd gwall wrth adfer eich cyfrinair. Ceisiwch eto yn nes ymlaen."
 }
