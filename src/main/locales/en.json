@@ -104,5 +104,7 @@
   "resetSessionMissing": "Cannot reset password—session expired. Please start again.",
   "resetError": "An error occurred while resetting your password. Please try again later.",
   "sessionExpired": "Session expired or invalid. Please log in again.",
-  "accountUpdateError": "An error occurred while updating your account. Please try again later."
+  "accountUpdateError": "An error occurred while updating your account. Please try again later.",
+  "pageNotFoundHeading": "Page not Found",
+  "errorSomethingWentWrongHeading": "Something went wrong"
 }

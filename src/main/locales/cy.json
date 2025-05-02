@@ -104,5 +104,7 @@
   "resetSessionMissing": "Methu adfer y cyfrinair—mae’r sesiwn wedi dod i ben. Dechreuwch eto, os gwelwch yn dda.",
   "resetError": "Digwyddodd gwall wrth adfer eich cyfrinair. Ceisiwch eto yn nes ymlaen.",
   "sessionExpired": "Mae’r sesiwn wedi dod i ben neu’n annilys. Mewngofnodwch eto, os gwelwch yn dda.",
-  "accountUpdateError": "Digwyddodd gwall wrth ddiweddaru eich cyfrif. Ceisiwch eto’n ddiweddarach."
+  "accountUpdateError": "Digwyddodd gwall wrth ddiweddaru eich cyfrif. Ceisiwch eto’n ddiweddarach.",
+  "pageNotFoundHeading": "Heb ganfod y dudalen",
+  "errorSomethingWentWrongHeading": "Digwyddodd rhywbeth o'i le"
 }
