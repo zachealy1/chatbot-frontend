@@ -95,5 +95,6 @@
   "emailInvalid": "Nodwch gyfeiriad e-bost dilys.",
   "dobInvalid": "Nodwch ddyddiad geni dilys.",
   "passwordCriteria": "Mae’n rhaid i’r cyfrinair gwrdd â’r meini prawf.",
-  "confirmPasswordRequired": "Cadarnhewch eich cyfrinair."
+  "confirmPasswordRequired": "Cadarnhewch eich cyfrinair.",
+  "forgotPasswordError": "Digwyddodd gwall. Ceisiwch eto yn nes ymlaen."
 }

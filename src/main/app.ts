@@ -196,69 +196,66 @@ app.get('/logout', (req, res) => {
 });
 
 app.post('/forgot-password/enter-email', async (req, res) => {
-  // Extract the email from the request body
   const { email } = req.body;
-  console.log('[ForgotPassword] Received email:', email);
+  // 1) Pick up the lang cookie (defaults to 'en')
+  const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
 
-  // Basic local validation for the email format
+  // 2) Server-side validation
+  const fieldErrors = {} as any;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
-    console.log('[ForgotPassword] Invalid or missing email:', email);
+    fieldErrors.email = req.__('emailInvalid');
+  }
+
+  if (Object.keys(fieldErrors).length) {
+    // re-render with inline error
     return res.render('forgot-password', {
-      errors: ['Please enter a valid email address.'],
-      email, // so the user doesn't lose what they typed
+      lang,
+      fieldErrors,
+      email
     });
   }
 
+  // 3) CSRF & axios client setup
+  const jar = new CookieJar();
+  jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
+  const client = wrapper(axios.create({
+    baseURL: 'http://localhost:4550',
+    jar,
+    withCredentials: true,
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN'
+  }));
+
   try {
-    // 1) Create a cookie jar & an axios client with CSRF config
-    const jar = new CookieJar();
-    const client = wrapper(
-      axios.create({
-        jar,
-        withCredentials: true,
-        xsrfCookieName: 'XSRF-TOKEN',
-        xsrfHeaderName: 'X-XSRF-TOKEN',
-      })
-    );
+    // 4) Fetch CSRF token
+    const { data: { csrfToken } } = await client.get('/csrf');
 
-    // 2) Request the CSRF token from the backend
-    const csrfResponse = await client.get('http://localhost:4550/csrf');
-    const csrfToken = csrfResponse.data.csrfToken;
-    console.log('[ForgotPassword] Retrieved CSRF token:', csrfToken);
-
-    // 3) Make the POST request to the Spring Boot route
-    //    which requires CSRF & possibly does not require authentication
-    const response = await client.post(
-      'http://localhost:4550/forgot-password/enter-email',
+    // 5) Call backend forgot-password endpoint
+    await client.post(
+      '/forgot-password/enter-email',
       { email },
-      {
-        headers: {
-          'X-XSRF-TOKEN': csrfToken,
-        },
-      }
+      { headers: { 'X-XSRF-TOKEN': csrfToken } }
     );
 
-    console.log('[ForgotPassword] Forgot-password call succeeded:', response.data);
-
-    // 4) Store the email in session so we can retrieve it when verifying OTP
+    // 6) Save email in session for OTP step
     (req.session as any).email = email;
 
-    // 5) If successful, redirect to the next step (e.g., OTP entry)
-    return res.redirect('/forgot-password/verify-otp');
-  } catch (error) {
-    console.error('[ForgotPassword] Error during backend forgot-password:', error);
+    // 7) Redirect to OTP page
+    return res.redirect('/forgot-password/verify-otp?lang=' + lang);
 
-    // If the backend returned a specific error message, extract it
-    let errorMsg = 'An error occurred during the forgot-password process. Please try again later.';
-    if (error.response && error.response.data) {
-      errorMsg = error.response.data;
-    }
+  } catch (err) {
+    console.error('[ForgotPassword] Error:', err.response || err.message);
 
-    // Re-render the forgot-password screen with an error
+    // fallback general error
+    fieldErrors.general = typeof err.response?.data === 'string'
+      ? err.response.data
+      : req.__('forgotPasswordError');
+
     return res.render('forgot-password', {
-      errors: [errorMsg],
-      email,
+      lang,
+      fieldErrors,
+      email
     });
   }
 });

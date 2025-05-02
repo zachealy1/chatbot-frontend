@@ -95,5 +95,6 @@
 	"emailInvalid": "Enter a valid email address.",
 	"dobInvalid": "Enter a valid date of birth.",
 	"passwordCriteria": "Password must meet the criteria.",
-  "confirmPasswordRequired": "Please confirm your password."
+  "confirmPasswordRequired": "Please confirm your password.",
+  "forgotPasswordError": "An error occurred. Please try again later."
 }
