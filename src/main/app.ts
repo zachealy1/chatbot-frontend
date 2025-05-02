@@ -260,7 +260,7 @@ app.post('/forgot-password/enter-email', async (req, res) => {
   }
 });
 
-app.post('/forgot-password/reset-password', async (req, res, next) => {
+app.post('/forgot-password/reset-password', async (req, res) => {
   const { password, confirmPassword } = req.body;
   const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
   const email = (req.session as any).email;
