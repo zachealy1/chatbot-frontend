@@ -184,7 +184,6 @@ app.post('/login', async (req, res, next) => {
   }
 });
 
-
 app.get('/logout', (req, res) => {
   req.logout(err => {
     if (err) {
@@ -477,47 +476,44 @@ app.post('/register', async (req, res) => {
     'date-of-birth-year': year,
   } = req.body;
 
-  const errors: string[] = [];
+  const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
 
-  // Regex to enforce a strong password.
-  const passwordCriteriaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  // Server-side validation
+  const fieldErrors: Record<string,string> = {};
 
-  // Validate Username.
-  if (!username || username.trim() === '') {
-    errors.push('Username is required.');
+  if (!username?.trim()) {
+    fieldErrors.username = req.__('usernameRequired');
   }
 
-  // Validate Email.
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !emailRegex.test(email)) {
-    errors.push('Enter a valid email address.');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    fieldErrors.email = req.__('emailInvalid');
   }
 
-  // Helper function to validate date of birth.
-  const isValidDate = (dobDay: string, dobMonth: string, dobYear: string): boolean => {
-    const dateStr = `${dobYear}-${dobMonth.padStart(2, '0')}-${dobDay.padStart(2, '0')}`;
-    const date = new Date(dateStr);
-    return !isNaN(date.getTime()) && date < new Date();
-  };
-
-  if (!day || !month || !year || !isValidDate(day, month, year)) {
-    errors.push('Enter a valid date of birth.');
+  const dob = new Date(
+    `${year}-${month?.padStart(2,'0')}-${day?.padStart(2,'0')}`
+  );
+  const isPast = d => d instanceof Date && !isNaN(d.getTime()) && d < new Date();
+  if (!day || !month || !year || !isPast(dob)) {
+    fieldErrors.dateOfBirth = req.__('dobInvalid');
   }
 
-  // Validate Password.
-  if (!password || !passwordCriteriaRegex.test(password)) {
-    errors.push('Password must meet the criteria.');
+  const strongPwd = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+  if (!password || !strongPwd.test(password)) {
+    fieldErrors.password = req.__('passwordCriteria');
   }
 
-  // Check if the passwords match.
-  if (password !== confirmPassword) {
-    errors.push('Passwords do not match.');
+  // === Confirm-password validation ===
+  if (!confirmPassword) {
+    fieldErrors.confirmPassword = req.__('confirmPasswordRequired');
+  } else if (password !== confirmPassword) {
+    fieldErrors.confirmPassword = req.__('passwordsMismatch');
   }
 
-  // If there are validation errors, re-render the registration page with error messages.
-  if (errors.length > 0) {
+  // If any errors, re-render with inline errors only
+  if (Object.keys(fieldErrors).length) {
     return res.render('register', {
-      errors,
+      lang,
+      fieldErrors,
       username,
       email,
       day,
@@ -526,50 +522,45 @@ app.post('/register', async (req, res) => {
     });
   }
 
-  // Convert day, month, and year into the expected "YYYY-MM-DD" format.
-  const dateOfBirth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  // 3) Prepare axios client with CSRF and lang cookie
+  const jar = new CookieJar();
+  jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
+  const client = wrapper(axios.create({
+    baseURL: 'http://localhost:4550',
+    jar,
+    withCredentials: true,
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN'
+  }));
 
   try {
-    // Create a cookie jar and an axios client that supports cookies.
-    const jar = new CookieJar();
-    const client = wrapper(
-      axios.create({
-        jar,
-        withCredentials: true,
-        xsrfCookieName: 'XSRF-TOKEN',
-        xsrfHeaderName: 'X-XSRF-TOKEN',
-      })
+    // 4) Fetch CSRF token
+    const { data: { csrfToken } } = await client.get('/csrf');
+
+    // 5) Perform registration
+    const dateOfBirth = dob.toISOString().slice(0,10);
+    await client.post(
+      '/account/register',
+      { username, email, password, confirmPassword, dateOfBirth },
+      { headers: { 'X-XSRF-TOKEN': csrfToken } }
     );
 
-    // Request the CSRF token from the backend.
-    const csrfResponse = await client.get('http://localhost:4550/csrf');
-    const csrfToken = csrfResponse.data.csrfToken;
-    console.log('Retrieved CSRF token:', csrfToken);
+    // 6) Redirect to login with success banner
+    return res.redirect(`/login?created=true&lang=${lang}`);
 
-    // Send the registration POST request using the response body token.
-    const response = await client.post(
-      'http://localhost:4550/account/register',
-      {
-        username,
-        email,
-        password,
-        confirmPassword,
-        dateOfBirth,
-      },
-      {
-        headers: {
-          'X-XSRF-TOKEN': csrfToken,
-        },
-      }
-    );
+  } catch (err: any) {
+    console.error('Registration error:', err.response || err.message);
 
-    console.log('User registered successfully in backend:', response.data);
-    res.redirect('/login?created=true');
-  } catch (error) {
-    console.error('Error during backend registration:', error);
-    errors.push('An error occurred during registration. Please try again later.');
+    // Extract backend message or fallback
+    const backendMsg = typeof err.response?.data === 'string'
+      ? err.response.data
+      : null;
+    fieldErrors.general = backendMsg || req.__('registerError');
+
+    // Re-render with just fieldErrors (no summary)
     return res.render('register', {
-      errors,
+      lang,
+      fieldErrors,
       username,
       email,
       day,

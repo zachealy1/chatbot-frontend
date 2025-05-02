@@ -90,5 +90,10 @@
   "placeholderConfirmPassword": "Rhowch y cyfrinair newydd eto",
   "buttonShow": "Dangos",
   "buttonSaveChanges": "Cadw newidiadau",
-  "loginSessionError": "Digwyddodd gwall wrth fewngofnodi. Ceisiwch eto os gwelwch yn dda."
+  "loginSessionError": "Digwyddodd gwall wrth fewngofnodi. Ceisiwch eto os gwelwch yn dda.",
+  "usernameRequired": "Mae angen enw defnyddiwr.",
+  "emailInvalid": "Nodwch gyfeiriad e-bost dilys.",
+  "dobInvalid": "Nodwch ddyddiad geni dilys.",
+  "passwordCriteria": "Mae’n rhaid i’r cyfrinair gwrdd â’r meini prawf.",
+  "confirmPasswordRequired": "Cadarnhewch eich cyfrinair."
 }

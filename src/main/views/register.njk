@@ -1,6 +1,5 @@
 {% from "govuk/components/header/macro.njk" import govukHeader %}
 {% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
-{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% extends "template.njk" %}
@@ -10,9 +9,7 @@
 {% endblock %}
 
 {% block header %}
-  {{ govukHeader({
-    classes: "govuk-header--full-width-border"
-  }) }}
+  {{ govukHeader({ classes: "govuk-header--full-width-border" }) }}
 
   <section
     aria-label="Service information"
@@ -64,81 +61,113 @@
   <h1 class="govuk-heading-xl">{{ __("createAccountHeading") }}</h1>
 
   <p class="govuk-body">
-    {{ __("alreadyHaveAccount") | safe }} <a href="/" class="govuk-link">{{ __("signInHereLink") | safe }}</a>.
+    {{ __("alreadyHaveAccount") | safe }}
+    <a href="/" class="govuk-link">{{ __("signInHereLink") | safe }}</a>.
   </p>
 
-  {% if errors %}
-    <div class="govuk-error-summary" role="alert" tabindex="-1">
-      <h2 class="govuk-error-summary__title">
-        {{ __("errorSummaryTitle") }}
-      </h2>
-      <ul class="govuk-list govuk-error-summary__list">
-        {% for err in errors %}
-          <li>{{ err }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-  {% endif %}
-
   <form action="/register" method="POST" novalidate>
-    <div class="govuk-form-group">
-      <label class="govuk-label govuk-label--l" for="username">
-        {{ __("usernameLabel") }}
-      </label>
+    {# USERNAME #}
+    <div class="govuk-form-group{% if fieldErrors.username %} govuk-form-group--error{% endif %}">
+      <label class="govuk-label govuk-label--l" for="username">{{ __("usernameLabel") }}</label>
+      {% if fieldErrors.username %}
+        <p id="username-error" class="govuk-error-message">
+          {{ fieldErrors.username }}
+        </p>
+      {% endif %}
       <input
-        class="govuk-input govuk-!-width-one-half"
+        class="govuk-input govuk-!-width-one-half{% if fieldErrors.username %} govuk-input--error{% endif %}"
         id="username"
         name="username"
         type="text"
+        value="{{ username | default('') }}"
         placeholder="{{ __("usernamePlaceholder") }}"
-        required
+        {% if fieldErrors.username %}aria-describedby="username-error"{% endif %}
       >
     </div>
 
-    <div class="govuk-form-group">
-      <label class="govuk-label govuk-label--l" for="email">
-        {{ __("emailLabel") }}
-      </label>
+    {# EMAIL #}
+    <div class="govuk-form-group{% if fieldErrors.email %} govuk-form-group--error{% endif %}">
+      <label class="govuk-label govuk-label--l" for="email">{{ __("emailLabel") }}</label>
+      {% if fieldErrors.email %}
+        <p id="email-error" class="govuk-error-message">
+          {{ fieldErrors.email }}
+        </p>
+      {% endif %}
       <input
-        class="govuk-input govuk-!-width-one-half"
+        class="govuk-input govuk-!-width-one-half{% if fieldErrors.email %} govuk-input--error{% endif %}"
         id="email"
         name="email"
         type="email"
+        value="{{ email | default('') }}"
         placeholder="{{ __("emailPlaceholder") }}"
-        required
+        {% if fieldErrors.email %}aria-describedby="email-error"{% endif %}
       >
     </div>
 
-    {# Date of birth #}
-    {% set dobParams = {
-      fieldset: {
-        legend: {
-          text: __("dateOfBirthLegend"),
-          isPageHeading: true,
-          classes: "govuk-fieldset__legend--l"
-        }
-      },
-      hint: { text: __("dateOfBirthHint") },
-      id: "date-of-birth",
-      namePrefix: "date-of-birth",
-      items: [
-        { classes: "govuk-input--width-2", name: "day", value: day|default('') },
-        { classes: "govuk-input--width-2", name: "month", value: month|default('') },
-        { classes: "govuk-input--width-4", name: "year", value: year|default('') }
-      ]
-    } %}
-    {% if errors.dateOfBirth %}
-      {% set dobParams = dobParams | merge({
-        errorMessage: { text: errors.dateOfBirth }
-      }) %}
-    {% endif %}
-    {{ govukDateInput(dobParams) }}
+    {# DATE OF BIRTH #}
+    <div class="govuk-form-group{% if fieldErrors.dateOfBirth %} govuk-form-group--error{% endif %}">
+      <fieldset class="govuk-fieldset" aria-describedby="dob-hint{% if fieldErrors.dateOfBirth %} dob-error{% endif %}">
+        <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+          <h1 class="govuk-fieldset__heading">{{ __("dateOfBirthLegend") }}</h1>
+        </legend>
 
-    {# Password #}
-    <div class="govuk-form-group">
-      <label class="govuk-label govuk-label--l" for="password">
-        {{ __("passwordLabel") }}
-      </label>
+        <div id="dob-hint" class="govuk-hint">
+          {{ __("dateOfBirthHint") }}
+        </div>
+
+        {% if fieldErrors.dateOfBirth %}
+          <p id="dob-error" class="govuk-error-message">
+            {{ fieldErrors.dateOfBirth }}
+          </p>
+        {% endif %}
+
+        <div class="govuk-date-input" id="date-of-birth">
+          <div class="govuk-date-input__item">
+            <div class="govuk-form-group">
+              <label class="govuk-label govuk-date-input__label" for="date-of-birth-day">Day</label>
+              <input
+                class="govuk-input govuk-date-input__input govuk-input--width-2{% if fieldErrors.dateOfBirth %} govuk-input--error{% endif %}"
+                id="date-of-birth-day"
+                name="date-of-birth-day"
+                type="text"
+                inputmode="numeric"
+                value="{{ day | default('') }}"
+              >
+            </div>
+          </div>
+          <div class="govuk-date-input__item">
+            <div class="govuk-form-group">
+              <label class="govuk-label govuk-date-input__label" for="date-of-birth-month">Month</label>
+              <input
+                class="govuk-input govuk-date-input__input govuk-input--width-2{% if fieldErrors.dateOfBirth %} govuk-input--error{% endif %}"
+                id="date-of-birth-month"
+                name="date-of-birth-month"
+                type="text"
+                inputmode="numeric"
+                value="{{ month | default('') }}"
+              >
+            </div>
+          </div>
+          <div class="govuk-date-input__item">
+            <div class="govuk-form-group">
+              <label class="govuk-label govuk-date-input__label" for="date-of-birth-year">Year</label>
+              <input
+                class="govuk-input govuk-date-input__input govuk-input--width-4{% if fieldErrors.dateOfBirth %} govuk-input--error{% endif %}"
+                id="date-of-birth-year"
+                name="date-of-birth-year"
+                type="text"
+                inputmode="numeric"
+                value="{{ year | default('') }}"
+              >
+            </div>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+
+    {# PASSWORD & CONFIRM #}
+    <div class="govuk-form-group{% if fieldErrors.password or fieldErrors.confirmPassword %} govuk-form-group--error{% endif %}">
+      <label class="govuk-label govuk-label--l" for="password">{{ __("passwordLabel") }}</label>
       <div id="password-hint" class="govuk-hint">
         <p class="govuk-body">{{ __("passwordHintTitle") }}</p>
         <ul class="govuk-list govuk-list--bullet">
@@ -149,15 +178,22 @@
           <li>{{ __("passwordCriteriaBullet5") }}</li>
         </ul>
       </div>
+
+      {% if fieldErrors.password %}
+        <p id="password-error" class="govuk-error-message">
+          {{ fieldErrors.password }}
+        </p>
+      {% endif %}
       <label class="govuk-label" for="password">{{ __("labelNewPassword") }}</label>
       <input
-        class="govuk-input govuk-input-password govuk-!-width-one-half"
+        class="govuk-input govuk-input-password govuk-!-width-one-half{% if fieldErrors.password %} govuk-input--error{% endif %}"
         id="password"
         name="password"
         type="password"
         placeholder="{{ __("passwordPlaceholder") }}"
-        aria-describedby="password-hint"
+        aria-describedby="password-hint{% if fieldErrors.password %} password-error{% endif %}"
       >
+
       <button
         type="button"
         class="govuk-button govuk-button--secondary govuk-button-password--secondary toggle-button"
@@ -168,16 +204,24 @@
         {{ __("showButton") }}
       </button>
 
+
+      {% if fieldErrors.confirmPassword %}
+        <p id="confirm-password-error" class="govuk-error-message">
+          {{ fieldErrors.confirmPassword }}
+        </p>
+      {% endif %}
       <label class="govuk-label" for="confirm-password">
         {{ __("confirmPasswordLabel") }}
       </label>
       <input
-        class="govuk-input govuk-!-width-one-half"
+        class="govuk-input govuk-!-width-one-half{% if fieldErrors.confirmPassword %} govuk-input--error{% endif %}"
         id="confirm-password"
         name="confirmPassword"
         type="password"
         placeholder="{{ __("confirmPasswordPlaceholder") }}"
+        {% if fieldErrors.confirmPassword %}aria-describedby="confirm-password-error"{% endif %}
       >
+
       <button
         type="button"
         class="govuk-button govuk-button--secondary toggle-button"
@@ -190,14 +234,11 @@
     </div>
 
     {{ govukButton({
-      text:  __("saveChangesButton"),
+      text: __("saveChangesButton"),
       classes: "govuk-!-margin-top-3",
       type: "submit"
     }) }}
   </form>
 
   <script src="showPassword-dev.js"></script>
-  <script src="passwordValidationRegister-dev.js"></script>
-  <script src="dateOfBirthValidation-dev.js"></script>
-  <script src="emailValidation-dev.js"></script>
 {% endblock %}
