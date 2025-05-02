@@ -338,71 +338,91 @@ app.post('/forgot-password/reset-password', async (req, res) => {
   }
 });
 
+// GET: show the OTP entry page (with optional “resent” banner)
+app.get('/forgot-password/verify-otp', (req, res) => {
+  const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
+  const sent = req.query.sent === 'true';
+
+  res.render('verify-otp', {
+    lang,
+    sent,
+    fieldErrors: {},
+    oneTimePassword: ''
+  });
+});
+
+// POST: validate & submit OTP
 app.post('/forgot-password/verify-otp', async (req, res) => {
   const { oneTimePassword } = req.body;
   const email = (req.session as any).email;
+  const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
 
-  console.log('[ForgotPassword] Received OTP:', oneTimePassword);
-  console.log('[ForgotPassword] Using email from session:', email);
+  // 1) Server-side validation
+  const fieldErrors: Record<string,string> = {};
 
-  // Validate that both are present
   if (!email) {
+    fieldErrors.general = req.__('noEmailInSession');
+  }
+  if (!oneTimePassword || !oneTimePassword.trim()) {
+    fieldErrors.oneTimePassword = req.__('otpRequired');
+  }
+
+  // If any validation errors, re-render
+  if (Object.keys(fieldErrors).length) {
     return res.render('verify-otp', {
-      error: 'No email found in session. Please request a password reset first.',
+      lang,
+      sent: false,
+      fieldErrors,
+      oneTimePassword
     });
   }
-  if (!oneTimePassword || oneTimePassword.trim() === '') {
-    return res.render('verify-otp', {
-      error: 'Please enter the one-time password (OTP).',
-    });
-  }
+
+  // 2) Prepare axios with CSRF & lang
+  const jar = new CookieJar();
+  jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
+  const client = wrapper(axios.create({
+    baseURL: 'http://localhost:4550',
+    jar,
+    withCredentials: true,
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN'
+  }));
 
   try {
-    // 1) Create a cookie jar & axios client for CSRF
-    const jar = new CookieJar();
-    const client = wrapper(
-      axios.create({
-        jar,
-        withCredentials: true,
-        xsrfCookieName: 'XSRF-TOKEN',
-        xsrfHeaderName: 'X-XSRF-TOKEN',
-      })
-    );
+    // 3) Fetch CSRF token
+    const { data: { csrfToken } } = await client.get('/csrf');
 
-    // 2) Fetch CSRF token from Spring Boot
-    console.log('[ForgotPassword] Requesting CSRF token for verify-otp...');
-    const csrfResponse = await client.get('http://localhost:4550/csrf');
-    const csrfToken = csrfResponse.data.csrfToken;
-    console.log('[ForgotPassword] Retrieved CSRF token:', csrfToken);
-
-    // 3) POST /forgot-password/verify-otp to backend with { email, otp }
-    //    The backend verifies the OTP
+    // 4) Call backend verify-otp
     await client.post(
-      'http://localhost:4550/forgot-password/verify-otp',
+      '/forgot-password/verify-otp',
       { email, otp: oneTimePassword },
       { headers: { 'X-XSRF-TOKEN': csrfToken } }
     );
 
-    // 4) If backend call succeeded, store the verified OTP in session
-    //    So we can prove that the user is allowed to reset the password.
+    // 5) Mark OTP as verified in session
     (req.session as any).verifiedOtp = oneTimePassword;
-    console.log('[ForgotPassword] OTP verified. Storing in session:', (req.session as any).verifiedOtp);
 
-    // 5) Redirect to /forgot-password/reset-password
-    return res.redirect('/forgot-password/reset-password');
-  } catch (error) {
-    console.error('[ForgotPassword] Error calling backend /forgot-password/verify-otp:', error);
+    // 6) Redirect to reset-password
+    return res.redirect('/forgot-password/reset-password?lang=' + lang);
 
-    let errorMessage = 'An error occurred while verifying the OTP. Please try again.';
-    if (error.response && error.response.data) {
-      errorMessage = error.response.data; // e.g. "OTP incorrect", "OTP expired", etc.
-    }
+  } catch (err: any) {
+    console.error('[ForgotPassword] OTP verify error:', err.response || err.message);
+
+    // backend error (expired/invalid OTP)
+    fieldErrors.general =
+      typeof err.response?.data === 'string'
+        ? err.response.data
+        : req.__('otpVerifyError');
 
     return res.render('verify-otp', {
-      error: errorMessage,
+      lang,
+      sent: false,
+      fieldErrors,
+      oneTimePassword
     });
   }
 });
+
 
 app.post('/forgot-password/resend-otp', async (req, res) => {
   console.log('[ForgotPassword] Resend OTP requested.');

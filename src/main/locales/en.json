@@ -96,5 +96,8 @@
 	"dobInvalid": "Enter a valid date of birth.",
 	"passwordCriteria": "Password must meet the criteria.",
   "confirmPasswordRequired": "Please confirm your password.",
-  "forgotPasswordError": "An error occurred. Please try again later."
+  "forgotPasswordError": "An error occurred. Please try again later.",
+  "noEmailInSession": "No email in session. Please request a password reset first.",
+  "otpRequired": "Please enter the one-time password (OTP).",
+  "otpVerifyError": "An error occurred while verifying the OTP. Please try again."
 }

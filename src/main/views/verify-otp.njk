@@ -1,19 +1,13 @@
 {% from "govuk/components/header/macro.njk" import govukHeader %}
 {% from "govuk/components/service-navigation/macro.njk" import govukServiceNavigation %}
-{% from "govuk/components/input/macro.njk" import govukInput %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% extends "template.njk" %}
 
-{% block pageTitle %}
-  HMCTS chatbot
-{% endblock %}
+{% block pageTitle %} HMCTS chatbot {% endblock %}
 
 {% block header %}
-  {{ govukHeader({
-    classes: "govuk-header--full-width-border"
-  }) }}
-
+  {{ govukHeader({ classes: "govuk-header--full-width-border" }) }}
   <section aria-label="Service information"
            class="govuk-service-navigation"
            data-module="govuk-service-navigation">
@@ -57,45 +51,35 @@
 {% block content %}
   <h1 class="govuk-heading-xl">{{ __("enterOtpHeading") }}</h1>
 
+  {# Success banner when OTP was resent #}
   {% if sent %}
-    <div class="govuk-notification-banner govuk-notification-banner--success"
-         role="alert"
-         aria-labelledby="govuk-notification-banner-title"
-         data-module="govuk-notification-banner">
+    <div class="govuk-notification-banner govuk-notification-banner--success" role="alert">
       <div class="govuk-notification-banner__header">
-        <h2 class="govuk-notification-banner__title"
-            id="govuk-notification-banner-title">
-          {{ __("successTitle") }}
-        </h2>
+        <h2 class="govuk-notification-banner__title">{{ __("successTitle") }}</h2>
       </div>
       <div class="govuk-notification-banner__content">
-        <h3 class="govuk-notification-banner__heading">
-          {{ __("otpSentMessage") }}
-        </h3>
+        <h3 class="govuk-notification-banner__heading">{{ __("otpSentMessage") }}</h3>
         <p class="govuk-body">{{ __("contactSupportHtml") | safe }}</p>
       </div>
     </div>
   {% endif %}
 
   <form action="/forgot-password/verify-otp" method="post" novalidate>
-    <div class="govuk-form-group {% if error %}govuk-form-group--error{% endif %}" id="otp-group">
-      <label class="govuk-label" for="one-time-password">
-        {{ __("oneTimePasswordLabel") }}
-      </label>
-      <div id="one-time-password-hint" class="govuk-hint">
-        {{ __("oneTimePasswordHint") }}
-      </div>
-      {% if error %}
-        <p id="one-time-password-error" class="govuk-error-message">
-          <span class="govuk-visually-hidden">Error:</span> {{ error }}
-        </p>
+    <div class="govuk-form-group{% if fieldErrors.oneTimePassword %} govuk-form-group--error{% endif %}" id="otp-group">
+      <label class="govuk-label" for="one-time-password">{{ __("oneTimePasswordLabel") }}</label>
+      <div id="one-time-password-hint" class="govuk-hint">{{ __("oneTimePasswordHint") }}</div>
+
+      {% if fieldErrors.oneTimePassword %}
+        <span id="one-time-password-error" class="govuk-error-message">{{ fieldErrors.oneTimePassword }}</span>
       {% endif %}
+
       <input
-        class="govuk-input govuk-!-width-one-half {% if error %}govuk-input--error{% endif %}"
+        class="govuk-input govuk-!-width-one-half{% if fieldErrors.oneTimePassword %} govuk-input--error{% endif %}"
         id="one-time-password"
         name="oneTimePassword"
         type="text"
-        aria-describedby="one-time-password-hint {% if error %}one-time-password-error{% endif %}"
+        value="{{ oneTimePassword | default('') }}"
+        aria-describedby="one-time-password-hint{% if fieldErrors.oneTimePassword %} one-time-password-error{% endif %}"
       >
     </div>
 
@@ -114,6 +98,4 @@
       {{ __("resendEmailButton") }}
     </button>
   </form>
-
-  <script src="/otpValidation-dev.js" defer></script>
 {% endblock %}

@@ -96,5 +96,8 @@
   "dobInvalid": "Nodwch ddyddiad geni dilys.",
   "passwordCriteria": "Mae’n rhaid i’r cyfrinair gwrdd â’r meini prawf.",
   "confirmPasswordRequired": "Cadarnhewch eich cyfrinair.",
-  "forgotPasswordError": "Digwyddodd gwall. Ceisiwch eto yn nes ymlaen."
+  "forgotPasswordError": "Digwyddodd gwall. Ceisiwch eto yn nes ymlaen.",
+  "noEmailInSession": "Dim e-bost yn y sesiwn. Sicrhewch eich bod wedi gofyn am adfer cyfrinair yn gyntaf.",
+  "otpRequired": "Nodwch y cod unigryw (OTP).",
+  "otpVerifyError": "Digwyddodd gwall wrth wirio’r OTP. Ceisiwch eto."
 }
