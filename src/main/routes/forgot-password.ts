@@ -4,6 +4,22 @@ import { Application } from 'express';
 import { CookieJar } from 'tough-cookie';
 
 export default function (app: Application): void {
+
+  app.get('/forgot-password', (req, res) => {
+    res.render('forgot-password');
+  });
+
+  app.get('/forgot-password/verify-otp', function (req, res) {
+    const { sent } = req.query;
+    res.render('verify-otp', {
+      sent: sent === 'true',
+    });
+  });
+
+  app.get('/forgot-password/reset-password', (req, res) => {
+    res.render('reset-password');
+  });
+
   app.post('/forgot-password/enter-email', async (req, res) => {
     const { email } = req.body;
     // 1) Pick up the lang cookie (defaults to 'en')

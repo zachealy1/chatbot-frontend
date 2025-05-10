@@ -4,6 +4,15 @@ import { Application, NextFunction, Request, Response } from 'express';
 import { CookieJar } from 'tough-cookie';
 
 export default function (app: Application): void {
+
+  app.get('/login', function (req, res) {
+    const { created, passwordReset } = req.query;
+    res.render('login', {
+      created: created === 'true',
+      passwordReset: passwordReset === 'true',
+    });
+  });
+
   app.post('/login', async (req: Request, res: Response, next: NextFunction) => {
     const { username, password } = req.body;
     const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
