@@ -112,89 +112,6 @@ function ensureAuthenticated(req: express.Request, res: express.Response, next: 
   res.redirect('/login'); // Redirect to login if not authenticated
 }
 
-app.post('/login', async (req, res, next) => {
-  const { username, password } = req.body;
-  // 1) Pick up the lang cookie (defaults to 'en')
-  const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
-
-  // 2) Create a cookie‐jar and seed it with our lang cookie
-  const jar = new CookieJar();
-  jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
-
-  // 3) Wrap axios so it uses our jar AND auto‐handles XSRF from Spring
-  const client = wrapper(axios.create({
-    baseURL: 'http://localhost:4550',
-    jar,
-    withCredentials: true,
-    xsrfCookieName: 'XSRF-TOKEN',
-    xsrfHeaderName: 'X-XSRF-TOKEN'
-  }));
-
-  try {
-    // 4) Fetch CSRF token
-    const csrfResponse = await client.get('/csrf');
-    const csrfToken = csrfResponse.data.csrfToken;
-
-    // 5) Perform login
-    const loginResponse = await client.post(
-      '/login/chat',
-      { username, password },
-      { headers: { 'X-XSRF-TOKEN': csrfToken } }
-    );
-
-    // 6) Persist Spring’s session cookie & CSRF token in our Express session
-    const setCookieHeader = loginResponse.headers['set-cookie'];
-    const loginCookie = Array.isArray(setCookieHeader)
-      ? setCookieHeader.join('; ')
-      : setCookieHeader;
-    (req.session as any).springSessionCookie = loginCookie;
-    (req.session as any).csrfToken = csrfToken;
-
-    // 7) Save and complete passport login
-    req.session.save(err => {
-      if (err) {
-        console.error('Error saving session:', err);
-        return res.render('login', {
-          error: req.__('loginSessionError'),
-          username
-        });
-      }
-      req.login({ username, springSessionCookie: loginCookie, csrfToken }, err => {
-        if (err) {
-          console.error('Passport login error:', err);
-          return next(err);
-        }
-        return res.redirect('/chat');
-      });
-    });
-
-  } catch (err: any) {
-    console.error('Full login error:', err.response || err.message);
-
-    // If Spring returned a text message, use it; otherwise fall back to our i18n key
-    const backendMsg = typeof err.response?.data === 'string'
-      ? err.response.data
-      : null;
-    const errorMessage = backendMsg || req.__('loginInvalidCredentials');
-
-    return res.render('login', {
-      error: errorMessage,
-      username
-    });
-  }
-});
-
-app.get('/logout', (req, res) => {
-  req.logout(err => {
-    if (err) {
-      return res.status(500).send('Failed to logout');
-    }
-    req.session.destroy(() => {
-      res.redirect('/login');
-    });
-  });
-});
-
 app.post('/forgot-password/enter-email', async (req, res) => {
   const { email } = req.body;
   // 1) Pick up the lang cookie (defaults to 'en')
@@ -718,10 +635,6 @@ app.post('/account/update', async (req, res) => {
       year
     });
   }
-});
-
-app.get('/', (req, res) => {
-  res.redirect('/login');
 });
 
 app.get('/login', function (req, res) {
