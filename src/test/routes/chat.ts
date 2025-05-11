@@ -1,8 +1,9 @@
+import * as authModule from '../../main/modules/auth';
 import chatRoutes from '../../main/routes/chat';
 
 import * as axiosCookie from 'axios-cookiejar-support';
 import { expect } from 'chai';
-import express, { Application } from 'express';
+import express, { Application, NextFunction } from 'express';
 import sinon from 'sinon';
 import request from 'supertest';
 
@@ -114,5 +115,56 @@ describe('POST /chat', () => {
     expect(res.body).to.deep.equal({
       error: 'An error occurred while sending the chat message. Please try again later.',
     });
+  });
+});
+
+describe('GET /chat', () => {
+  let ensureStub: sinon.SinonStub;
+
+  beforeEach(() => {
+    // by default, simulate an authenticated user
+    ensureStub = sinon
+      .stub(authModule, 'ensureAuthenticated')
+      .callsFake((_req: Request, _res: Response, next: NextFunction) => next());
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  function mkApp() {
+    const app: Application = express();
+
+    // stub render → JSON
+    app.use((req, res, next) => {
+      res.render = (view: string) => res.json({ view });
+      next();
+    });
+
+    chatRoutes(app);
+    return app;
+  }
+
+  it('renders the chat view when authenticated', async () => {
+    const app = mkApp();
+    const res = await request(app)
+      .get('/chat')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({ view: 'chat' });
+    expect(ensureStub.calledOnce).to.be.true;
+  });
+
+  it('redirects to /login when not authenticated', async () => {
+    // simulate an unauthenticated user
+    ensureStub.restore();
+    sinon.stub(authModule, 'ensureAuthenticated').callsFake((_req: Request, res: any) => {res.redirect('/login');});
+
+    const app = mkApp();
+    await request(app)
+      .get('/chat')
+      .expect(302)
+      .expect('Location', '/login');
   });
 });
