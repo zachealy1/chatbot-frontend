@@ -33,11 +33,12 @@ describe('GET /forgot-password', () => {
 });
 
 describe('GET /forgot-password/verify-otp', () => {
-  function mkApp() {
+  function mkApp(cookies: Record<string, string> = {}) {
     const app: Application = express();
 
-    // stub res.render → JSON
+    // stub cookies and render
     app.use((req, res, next) => {
+      req.cookies = cookies;
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();
     });
@@ -46,7 +47,7 @@ describe('GET /forgot-password/verify-otp', () => {
     return app;
   }
 
-  it('renders verify-otp with sent=false when no query param', async () => {
+  it('renders default verify-otp view with lang=en and sent=false', async () => {
     const app = mkApp();
     const res = await request(app)
       .get('/forgot-password/verify-otp')
@@ -55,24 +56,16 @@ describe('GET /forgot-password/verify-otp', () => {
 
     expect(res.body).to.deep.equal({
       view: 'verify-otp',
-      options: { sent: false },
+      options: {
+        lang: 'en',
+        sent: false,
+        fieldErrors: {},
+        oneTimePassword: '',
+      },
     });
   });
 
-  it('renders verify-otp with sent=false when sent=false is provided', async () => {
-    const app = mkApp();
-    const res = await request(app)
-      .get('/forgot-password/verify-otp?sent=false')
-      .expect(200)
-      .expect('Content-Type', /json/);
-
-    expect(res.body).to.deep.equal({
-      view: 'verify-otp',
-      options: { sent: false },
-    });
-  });
-
-  it('renders verify-otp with sent=true when sent=true is provided', async () => {
+  it('renders with sent=true when query param is present', async () => {
     const app = mkApp();
     const res = await request(app)
       .get('/forgot-password/verify-otp?sent=true')
@@ -81,7 +74,48 @@ describe('GET /forgot-password/verify-otp', () => {
 
     expect(res.body).to.deep.equal({
       view: 'verify-otp',
-      options: { sent: true },
+      options: {
+        lang: 'en',
+        sent: true,
+        fieldErrors: {},
+        oneTimePassword: '',
+      },
+    });
+  });
+
+  it('renders with lang=cy when lang cookie is cy', async () => {
+    const app = mkApp({ lang: 'cy' });
+    const res = await request(app)
+      .get('/forgot-password/verify-otp')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'cy',
+        sent: false,
+        fieldErrors: {},
+        oneTimePassword: '',
+      },
+    });
+  });
+
+  it('handles both lang=cy and sent=true together', async () => {
+    const app = mkApp({ lang: 'cy' });
+    const res = await request(app)
+      .get('/forgot-password/verify-otp?sent=true')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'cy',
+        sent: true,
+        fieldErrors: {},
+        oneTimePassword: '',
+      },
     });
   });
 });
@@ -438,3 +472,110 @@ describe('POST /forgot-password/reset-password', () => {
     expect(wrapperStub.calledOnce).to.be.true;
   });
 });
+
+describe('GET /forgot-password/verify-otp (new signature)', () => {
+  function mkApp(cookies: Record<string, string> = {}) {
+    const app: Application = express();
+
+    // stub cookies and render
+    app.use((req, res, next) => {
+      req.cookies = cookies;
+      res.render = (view: string, opts?: any) => res.json({ view, options: opts });
+      next();
+    });
+
+    forgotPasswordRoutes(app);
+    return app;
+  }
+
+  it('renders with defaults when no lang or sent provided', async () => {
+    const app = mkApp();
+    const res = await request(app)
+      .get('/forgot-password/verify-otp')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'en',
+        sent: false,
+        fieldErrors: {},
+        oneTimePassword: ''
+      }
+    });
+  });
+
+  it('respects sent=true query parameter', async () => {
+    const app = mkApp();
+    const res = await request(app)
+      .get('/forgot-password/verify-otp?sent=true')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'en',
+        sent: true,
+        fieldErrors: {},
+        oneTimePassword: ''
+      }
+    });
+  });
+
+  it('respects sent=false query parameter', async () => {
+    const app = mkApp();
+    const res = await request(app)
+      .get('/forgot-password/verify-otp?sent=false')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'en',
+        sent: false,
+        fieldErrors: {},
+        oneTimePassword: ''
+      }
+    });
+  });
+
+  it('respects lang=cy cookie', async () => {
+    const app = mkApp({ lang: 'cy' });
+    const res = await request(app)
+      .get('/forgot-password/verify-otp')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'cy',
+        sent: false,
+        fieldErrors: {},
+        oneTimePassword: ''
+      }
+    });
+  });
+
+  it('handles both lang=cy and sent=true together', async () => {
+    const app = mkApp({ lang: 'cy' });
+    const res = await request(app)
+      .get('/forgot-password/verify-otp?sent=true')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'cy',
+        sent: true,
+        fieldErrors: {},
+        oneTimePassword: ''
+      }
+    });
+  });
+});
+

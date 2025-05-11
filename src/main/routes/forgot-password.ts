@@ -9,10 +9,16 @@ export default function (app: Application): void {
     res.render('forgot-password');
   });
 
-  app.get('/forgot-password/verify-otp', function (req, res) {
-    const { sent } = req.query;
+  // GET: show the OTP entry page (with optional “resent” banner)
+  app.get('/forgot-password/verify-otp', (req, res) => {
+    const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
+    const sent = req.query.sent === 'true';
+
     res.render('verify-otp', {
-      sent: sent === 'true',
+      lang,
+      sent,
+      fieldErrors: {},
+      oneTimePassword: ''
     });
   });
 
@@ -164,19 +170,6 @@ export default function (app: Application): void {
         confirmPassword
       });
     }
-  });
-
-// GET: show the OTP entry page (with optional “resent” banner)
-  app.get('/forgot-password/verify-otp', (req, res) => {
-    const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
-    const sent = req.query.sent === 'true';
-
-    res.render('verify-otp', {
-      lang,
-      sent,
-      fieldErrors: {},
-      oneTimePassword: ''
-    });
   });
 
 // POST: validate & submit OTP
