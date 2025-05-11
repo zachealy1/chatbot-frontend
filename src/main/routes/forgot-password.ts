@@ -244,7 +244,6 @@ export default function (app: Application): void {
     }
   });
 
-
   app.post('/forgot-password/resend-otp', async (req, res) => {
     console.log('[ForgotPassword] Resend OTP requested.');
 

@@ -473,3 +473,205 @@ describe('POST /forgot-password/reset-password', () => {
   });
 });
 
+describe('POST /forgot-password/verify-otp', () => {
+  let wrapperStub: sinon.SinonStub;
+  let stubClient: { get: sinon.SinonStub; post: sinon.SinonStub };
+
+  beforeEach(() => {
+    sinon.stub(console, 'error');
+
+    // fake axios client with CSRF and verify-otp endpoints
+    stubClient = {
+      get: sinon.stub(),
+      post: sinon.stub(),
+    };
+    wrapperStub = sinon
+      .stub(axiosCookie, 'wrapper')
+      .callsFake(() => stubClient as any);
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  function mkApp(options: {
+    session?: Record<string, any>;
+    cookies?: Record<string, string>;
+  } = {}) {
+    const { session = {}, cookies = {} } = options;
+    const app: Application = express();
+
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: false }));
+
+    // stub session, cookies, and translator
+    app.use((req, _res, next) => {
+      req.cookies = cookies;
+      (req as any).session = { ...session };
+      req.__ = (msg: string) => msg;
+      next();
+    });
+
+    // override render → JSON
+    app.use((req, res, next) => {
+      res.render = (view: string, opts?: any) => res.json({ view, options: opts });
+      next();
+    });
+
+    forgotPasswordRoutes(app);
+    return app;
+  }
+
+  it('re-renders with both general and OTP errors when session and OTP missing', async () => {
+    const app = mkApp();
+    const res = await request(app)
+      .post('/forgot-password/verify-otp')
+      .send({})
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'en',
+        sent: false,
+        fieldErrors: {
+          general: 'noEmailInSession',
+          oneTimePassword: 'otpRequired',
+        },
+      },
+    });
+    expect(wrapperStub.notCalled).to.be.true;
+  });
+
+  it('re-renders with OTP error when only session email present', async () => {
+    const app = mkApp({ session: { email: 'user@example.com' } });
+    const res = await request(app)
+      .post('/forgot-password/verify-otp')
+      .send({})
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'en',
+        sent: false,
+        fieldErrors: {
+          oneTimePassword: 'otpRequired',
+        },
+      },
+    });
+    expect(wrapperStub.notCalled).to.be.true;
+  });
+
+  it('re-renders with general error when only OTP provided', async () => {
+    const app = mkApp({ session: { email: 'user@example.com' } });
+    const res = await request(app)
+      .post('/forgot-password/verify-otp')
+      .send({ oneTimePassword: '  ' })
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'en',
+        sent: false,
+        fieldErrors: {
+          oneTimePassword: 'otpRequired',
+        },
+        oneTimePassword: '  ',
+      },
+    });
+    expect(wrapperStub.notCalled).to.be.true;
+  });
+
+  it('redirects to reset-password on successful OTP verify (lang=en)', async () => {
+    stubClient.get
+      .withArgs('/csrf')
+      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.post
+      .withArgs(
+        '/forgot-password/verify-otp',
+        { email: 'user@example.com', otp: '1234' },
+        sinon.match({ headers: { 'X-XSRF-TOKEN': 'tok123' } })
+      )
+      .resolves({});
+
+    const app = mkApp({ session: { email: 'user@example.com' }, cookies: {} });
+    await request(app)
+      .post('/forgot-password/verify-otp')
+      .send({ oneTimePassword: '1234' })
+      .expect(302)
+      .expect('Location', '/forgot-password/reset-password?lang=en');
+    expect(wrapperStub.calledOnce).to.be.true;
+  });
+
+  it('redirects to reset-password on successful OTP verify (lang=cy)', async () => {
+    stubClient.get.resolves({ data: { csrfToken: 'tokABC' } });
+    stubClient.post.resolves({});
+
+    const app = mkApp({
+      session: { email: 'user2@example.com' },
+      cookies: { lang: 'cy' },
+    });
+    await request(app)
+      .post('/forgot-password/verify-otp')
+      .send({ oneTimePassword: '5678' })
+      .expect(302)
+      .expect('Location', '/forgot-password/reset-password?lang=cy');
+    expect(wrapperStub.calledOnce).to.be.true;
+  });
+
+  it('re-renders with backend string error on verify failure', async () => {
+    stubClient.get.resolves({ data: { csrfToken: 'tokXYZ' } });
+    const err: any = new Error('fail');
+    err.response = { data: 'OTP expired' };
+    stubClient.post.rejects(err);
+
+    const app = mkApp({ session: { email: 'user3@example.com' } });
+    const res = await request(app)
+      .post('/forgot-password/verify-otp')
+      .send({ oneTimePassword: '9999' })
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'en',
+        sent: false,
+        fieldErrors: { general: 'OTP expired' },
+        oneTimePassword: '9999',
+      },
+    });
+    expect(wrapperStub.calledOnce).to.be.true;
+  });
+
+  it('re-renders with fallback error on non-string backend error', async () => {
+    stubClient.get.resolves({ data: { csrfToken: 'tokXYZ' } });
+    const err: any = new Error('fail');
+    err.response = { data: { code: 'ERR' } };
+    stubClient.post.rejects(err);
+
+    const app = mkApp({ session: { email: 'user4@example.com' } });
+    const res = await request(app)
+      .post('/forgot-password/verify-otp')
+      .send({ oneTimePassword: '0000' })
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        lang: 'en',
+        sent: false,
+        fieldErrors: { general: 'otpVerifyError' },
+        oneTimePassword: '0000',
+      },
+    });
+    expect(wrapperStub.calledOnce).to.be.true;
+  });
+});
+
