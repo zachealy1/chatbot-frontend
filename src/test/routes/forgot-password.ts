@@ -675,3 +675,141 @@ describe('POST /forgot-password/verify-otp', () => {
   });
 });
 
+describe('POST /forgot-password/resend-otp', () => {
+  let wrapperStub: sinon.SinonStub;
+  let stubClient: { get: sinon.SinonStub; post: sinon.SinonStub };
+
+  beforeEach(() => {
+    // silence logs
+    sinon.stub(console, 'log');
+    sinon.stub(console, 'error');
+
+    // fake axios client
+    stubClient = {
+      get: sinon.stub(),
+      post: sinon.stub(),
+    };
+    wrapperStub = sinon
+      .stub(axiosCookie, 'wrapper')
+      .callsFake(() => stubClient as any);
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  function mkApp(session: Record<string, any> = {}) {
+    const app: Application = express();
+
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: false }));
+
+    // stub session and render
+    app.use((req, res, next) => {
+      (req as any).session = { ...session };
+      res.render = (view: string, opts?: any) => res.json({ view, options: opts });
+      next();
+    });
+
+    forgotPasswordRoutes(app);
+    return app;
+  }
+
+  it('re-renders verify-otp with error when no email in session', async () => {
+    const app = mkApp();
+    const res = await request(app)
+      .post('/forgot-password/resend-otp')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        error: 'No valid email found. Please start the reset process again.',
+      },
+    });
+    expect(wrapperStub.notCalled).to.be.true;
+  });
+
+  it('re-renders verify-otp with error when email invalid', async () => {
+    const app = mkApp({ email: 'not-an-email' });
+    const res = await request(app)
+      .post('/forgot-password/resend-otp')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        error: 'No valid email found. Please start the reset process again.',
+      },
+    });
+    expect(wrapperStub.notCalled).to.be.true;
+  });
+
+  it('redirects to verify-otp on successful resend', async () => {
+    // stub CSRF fetch
+    stubClient.get
+      .withArgs('http://localhost:4550/csrf')
+      .resolves({ data: { csrfToken: 'tok123' } });
+
+    // stub resend-otp post
+    stubClient.post
+      .withArgs(
+        'http://localhost:4550/forgot-password/resend-otp',
+        { email: 'user@example.com' },
+        sinon.match({ headers: { 'X-XSRF-TOKEN': 'tok123' } })
+      )
+      .resolves({ data: {} });
+
+    const app = mkApp({ email: 'user@example.com' });
+    await request(app)
+      .post('/forgot-password/resend-otp')
+      .expect(302)
+      .expect('Location', '/forgot-password/verify-otp');
+    expect(wrapperStub.calledOnce).to.be.true;
+  });
+
+  it('re-renders verify-otp with backend string error', async () => {
+    stubClient.get.resolves({ data: { csrfToken: 'tokABC' } });
+    const err: any = new Error('fail');
+    err.response = { data: 'Service down' };
+    stubClient.post.rejects(err);
+
+    const app = mkApp({ email: 'user2@example.com' });
+    const res = await request(app)
+      .post('/forgot-password/resend-otp')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        error: 'Service down',
+      },
+    });
+    expect(wrapperStub.calledOnce).to.be.true;
+  });
+
+  it('re-renders verify-otp with fallback error on backend non-string error', async () => {
+    stubClient.get.resolves({ data: { csrfToken: 'tokXYZ' } });
+    const err: any = new Error('fail');
+    err.response = { data: { code: 'ERR' } };
+    stubClient.post.rejects(err);
+
+    const app = mkApp({ email: 'user3@example.com' });
+    const res = await request(app)
+      .post('/forgot-password/resend-otp')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'verify-otp',
+      options: {
+        error: { 'code': 'ERR' },
+      },
+    });
+    expect(wrapperStub.calledOnce).to.be.true;
+  });
+});
+
