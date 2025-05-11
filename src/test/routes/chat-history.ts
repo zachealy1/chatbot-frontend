@@ -211,3 +211,118 @@ describe('GET /delete-chat-history', () => {
     expect(wrapperStub.calledOnce).to.be.true;
   });
 });
+
+describe('GET /open-chat-history', () => {
+  let ensureStub: sinon.SinonStub;
+  let wrapperStub: sinon.SinonStub;
+  let stubClient: { get: sinon.SinonStub };
+
+  beforeEach(() => {
+    // suppress logs
+    sinon.stub(console, 'error');
+    sinon.stub(console, 'log');
+
+    // allow authentication to pass
+    ensureStub = sinon
+      .stub(authModule, 'ensureAuthenticated')
+      .callsFake((_req: Request, _res: Response, next: NextFunction) => next());
+
+    // fake axios client
+    stubClient = { get: sinon.stub() };
+    wrapperStub = sinon
+      .stub(axiosCookie, 'wrapper')
+      .callsFake(() => stubClient as any);
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  function mkApp(sessionCookie?: string) {
+    const app: Application = express();
+
+    // stub session and user
+    app.use((req, _res, next) => {
+      (req as any).session = {};
+      (req as any).user = {};
+      if (sessionCookie) {
+        (req as any).session.springSessionCookie = sessionCookie;
+      }
+      next();
+    });
+
+    // stub render → JSON
+    app.use((req, res, next) => {
+      res.render = (view: string, opts?: any) => res.json({ view, options: opts });
+      next();
+    });
+
+    chatHistoryRoutes(app);
+    return app;
+  }
+
+  it('returns 400 if chatId is missing', async () => {
+    const app = mkApp('SESSION=abc');
+    await request(app)
+      .get('/open-chat-history')
+      .expect(400)
+      .expect('Missing chatId parameter.');
+    expect(ensureStub.calledOnce).to.be.true;
+    expect(wrapperStub.notCalled).to.be.true;
+  });
+
+  it('returns 400 if chatId is not a number', async () => {
+    const app = mkApp('SESSION=abc');
+    await request(app)
+      .get('/open-chat-history?chatId=foo')
+      .expect(400)
+      .expect('Invalid chatId parameter.');
+    expect(ensureStub.calledOnce).to.be.true;
+    expect(wrapperStub.notCalled).to.be.true;
+  });
+
+  it('returns 401 if no session cookie is present', async () => {
+    const app = mkApp(); // no cookie
+    await request(app)
+      .get('/open-chat-history?chatId=123')
+      .expect(401)
+      .expect('User not authenticated or session expired.');
+    expect(ensureStub.calledOnce).to.be.true;
+    expect(wrapperStub.notCalled).to.be.true;
+  });
+
+  it('fetches messages and renders chat view when valid', async () => {
+    const sampleMessages = [
+      { id: 1, text: 'hello' },
+      { id: 2, text: 'world' },
+    ];
+    stubClient.get
+      .withArgs('http://localhost:4550/chat/messages/123')
+      .resolves({ data: sampleMessages });
+
+    const app = mkApp('SESSION=abc');
+    const res = await request(app)
+      .get('/open-chat-history?chatId=123')
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).to.deep.equal({
+      view: 'chat',
+      options: { chatId: 123, messages: sampleMessages },
+    });
+    expect(ensureStub.calledOnce).to.be.true;
+    expect(wrapperStub.calledOnce).to.be.true;
+  });
+
+  it('returns 500 on backend error', async () => {
+    stubClient.get.rejects(new Error('network error'));
+
+    const app = mkApp('SESSION=abc');
+    await request(app)
+      .get('/open-chat-history?chatId=456')
+      .expect(500)
+      .expect('Error retrieving chat history.');
+    expect(ensureStub.calledOnce).to.be.true;
+    expect(wrapperStub.calledOnce).to.be.true;
+  });
+});
