@@ -228,3 +228,41 @@ describe('POST /login', () => {
     });
   });
 });
+
+describe('GET /logout', () => {
+  function mkApp(logoutError: Error | null = null) {
+    const app: Application = express();
+
+    // stub logout and session.destroy
+    app.use((req, res, next) => {
+      req.logout = cb => cb(logoutError);
+      (req as any).session = {
+        destroy: (cb: (err: any) => void) => {
+          cb(null);
+        },
+      } as any;
+      next();
+    });
+
+    // mount the routes (loginRoutes includes GET /logout)
+    loginRoutes(app);
+    return app;
+  }
+
+  it('responds 500 when logout errors', async () => {
+    const err = new Error('oops');
+    const app = mkApp(err);
+    await request(app)
+      .get('/logout')
+      .expect(500)
+      .expect('Failed to logout');
+  });
+
+  it('redirects to /login on successful logout', async () => {
+    const app = mkApp();
+    await request(app)
+      .get('/logout')
+      .expect(302)
+      .expect('Location', '/login');
+  });
+});
