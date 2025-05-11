@@ -3975,6 +3975,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/mocha@npm:^10.0.10":
+  version: 10.0.10
+  resolution: "@types/mocha@npm:10.0.10"
+  checksum: 17a56add60a8cc8362d3c62cb6798be3f89f4b6ccd5b9abd12b46e31ff299be21ff2faebf5993de7e0099559f58ca5a3b49a505d302dfa5d65c5a4edfc089195
+  languageName: node
+  linkType: hard
+
 "@types/ms@npm:*":
   version: 0.7.31
   resolution: "@types/ms@npm:0.7.31"
@@ -4162,13 +4169,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/supertest@npm:^6.0.0":
-  version: 6.0.2
-  resolution: "@types/supertest@npm:6.0.2"
+"@types/supertest@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "@types/supertest@npm:6.0.3"
   dependencies:
     "@types/methods": ^1.1.4
     "@types/superagent": ^8.1.0
-  checksum: 1eafa472665757a6fd984439d11f388ae0480c6d243a6884066c474c4e0357de5373316488da503b1690c3163e075ca8c64c0c4853b3bb7deb09e05d1b64e556
+  checksum: 5f75e4190620bb06168cca6998c1af29168e7ca64de34abe522002573d96b37ce2611ee53a9a360b3f42d44f0bfea547d0bb258f038ab69ac50d90bd5b96fc13
   languageName: node
   linkType: hard
 
@@ -14213,13 +14220,14 @@ __metadata:
     "@types/jest": ^29.5.4
     "@types/js-cookie": ^3.0.6
     "@types/lodash": ^4.14.197
+    "@types/mocha": ^10.0.10
     "@types/node": ^20.0.0
     "@types/nunjucks": ^3.2.3
     "@types/passport": ^1.0.17
     "@types/passport-local": ^1.0.38
     "@types/require-directory": ^2.1.2
     "@types/serve-favicon": ^2.5.4
-    "@types/supertest": ^6.0.0
+    "@types/supertest": ^6.0.3
     "@typescript-eslint/eslint-plugin": ^7.0.0
     "@typescript-eslint/parser": ^7.0.0
     applicationinsights: ^3.2.1
@@ -14278,7 +14286,7 @@ __metadata:
     stylelint: ^16.0.0
     stylelint-config-standard: ^36.0.0
     stylelint-config-standard-scss: ^13.0.0
-    supertest: ^7.0.0
+    supertest: ^7.1.0
     tough-cookie: ^5.1.1
     ts-jest: ^29.1.1
     ts-loader: ^9.4.4
@@ -15287,13 +15295,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"supertest@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "supertest@npm:7.0.0"
+"supertest@npm:^7.1.0":
+  version: 7.1.0
+  resolution: "supertest@npm:7.1.0"
   dependencies:
     methods: ^1.1.2
     superagent: ^9.0.1
-  checksum: 974743aa511ec0f387135dfca05e378f6202366c81f0850dfbcc2c3d6fc690e856dda27e175c70db38510e21d87f331c0f62e1a942afea4c447953c647c26c8b
+  checksum: 366372311e18a27312e72ce8fc8292cafd0dc9424203d02258e3eab0490562c4dd733b313d5630a9ab3cf8cdd503d271768ce7aa0a66eccab61a35d60aedc0b1
   languageName: node
   linkType: hard
 
