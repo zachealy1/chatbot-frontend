@@ -1,9 +1,12 @@
 import { ensureAuthenticated } from '../modules/auth';
 
+import { Logger } from '@hmcts/nodejs-logging';
 import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { Application } from 'express';
 import { CookieJar } from 'tough-cookie';
+
+const logger = Logger.getLogger('app');
 
 export default function (app: Application): void {
 
@@ -51,7 +54,7 @@ export default function (app: Application): void {
       res.set('Cache-Control', 'no-store');
       res.render('account', context);
     } catch (error) {
-      console.error('Error retrieving account details:', error);
+      logger.error('Error retrieving account details:', error);
       res.render('account', {
         errors: ['Error retrieving account details.'],
         updated: req.query.updated === 'true',
@@ -175,7 +178,7 @@ export default function (app: Application): void {
       // On success, redirect back with a success flag
       return res.redirect(`/account?updated=true&lang=${lang}`);
     } catch (err: any) {
-      console.error('Error updating account in backend:', err.response || err.message);
+      logger.error('Error updating account in backend:', err.response || err.message);
       fieldErrors.general = req.__('accountUpdateError');
       return res.render('account', {
         lang,

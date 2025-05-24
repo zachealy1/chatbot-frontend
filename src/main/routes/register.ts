@@ -1,7 +1,10 @@
+import { Logger } from '@hmcts/nodejs-logging';
 import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { Application } from 'express';
 import { CookieJar } from 'tough-cookie';
+
+const logger = Logger.getLogger('app');
 
 export default function (app: Application): void {
 
@@ -93,7 +96,7 @@ export default function (app: Application): void {
       return res.redirect(`/login?created=true&lang=${lang}`);
 
     } catch (err: any) {
-      console.error('Registration error:', err.response || err.message);
+      logger.error('Registration error:', err.response || err.message);
 
       // Extract backend message or fallback
       const backendMsg = typeof err.response?.data === 'string'

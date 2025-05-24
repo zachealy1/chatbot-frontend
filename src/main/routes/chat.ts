@@ -1,9 +1,12 @@
 import { ensureAuthenticated } from '../modules/auth';
 
+import { Logger } from '@hmcts/nodejs-logging';
 import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { Application } from 'express';
 import { CookieJar } from 'tough-cookie';
+
+const logger = Logger.getLogger('app');
 
 export default function (app: Application): void {
   app.post('/chat', async (req, res) => {
@@ -40,7 +43,7 @@ export default function (app: Application): void {
       // Request the CSRF token from the backend.
       const csrfResponse = await client.get('http://localhost:4550/csrf');
       const csrfToken = csrfResponse.data.csrfToken;
-      console.log('Retrieved CSRF token for chat:', csrfToken);
+      logger.log('Retrieved CSRF token for chat:', csrfToken);
 
       // Send the chat POST request with the CSRF token included in the headers.
       const chatResponse = await client.post('http://localhost:4550/chat', payload, {
@@ -52,7 +55,7 @@ export default function (app: Application): void {
       // Return the backend's response (expected to be a JSON with chatId and message).
       return res.status(200).json(chatResponse.data);
     } catch (error) {
-      console.error('Error sending chat message to backend:', error);
+      logger.error('Error sending chat message to backend:', error);
       return res.status(500).json({
         error: 'An error occurred while sending the chat message. Please try again later.',
       });

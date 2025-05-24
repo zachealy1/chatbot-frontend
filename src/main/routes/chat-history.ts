@@ -1,9 +1,12 @@
 import { ensureAuthenticated } from '../modules/auth';
 
+import { Logger } from '@hmcts/nodejs-logging';
 import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { Application } from 'express';
 import { CookieJar } from 'tough-cookie';
+
+const logger = Logger.getLogger('app');
 
 export default function (app: Application): void {
   app.get('/chat-history', ensureAuthenticated, async (req, res) => {
@@ -32,7 +35,7 @@ export default function (app: Application): void {
       // Retrieve the CSRF token from the backend.
       const csrfResponse = await client.get('http://localhost:4550/csrf');
       const csrfToken = csrfResponse.data.csrfToken;
-      console.log('Retrieved CSRF token for chat-history:', csrfToken);
+      logger.log('Retrieved CSRF token for chat-history:', csrfToken);
 
       // Now call the backend endpoint to get the chat history, including the CSRF token in the headers.
       const chatsResponse = await client.get('http://localhost:4550/chat/chats', {
@@ -45,7 +48,7 @@ export default function (app: Application): void {
       // Render the chat history view, passing the chats to the template.
       res.render('chat-history', { chats });
     } catch (error) {
-      console.error('Error fetching chat histories:', error);
+      logger.error('Error fetching chat histories:', error);
       res.render('chat-history', {
         chats: [],
         error: 'Unable to load chat history at this time.',
@@ -84,7 +87,7 @@ export default function (app: Application): void {
       // (Optional) Retrieve the CSRF token from the backend.
       const csrfResponse = await client.get('http://localhost:4550/csrf');
       const csrfToken = csrfResponse.data.csrfToken;
-      console.log('Retrieved CSRF token for delete-chat-history:', csrfToken);
+      logger.log('Retrieved CSRF token for delete-chat-history:', csrfToken);
 
       // Call the backend DELETE endpoint.
       // Assuming the backend delete route is at: DELETE http://localhost:4550/chat/chats/{chatId}
@@ -97,7 +100,7 @@ export default function (app: Application): void {
       // Redirect back to the chat history page (optionally with a query parameter to show a success message).
       return res.redirect('/chat-history?deleted=true');
     } catch (error) {
-      console.error('Error deleting chat:', error);
+      logger.error('Error deleting chat:', error);
       return res.status(500).send('An error occurred while deleting the chat.');
     }
   });
@@ -144,7 +147,7 @@ export default function (app: Application): void {
       // If your chat.njk template is set up to display these, you'll see the conversation
       res.render('chat', { chatId, messages });
     } catch (error) {
-      console.error('Error retrieving chat history:', error);
+      logger.error('Error retrieving chat history:', error);
       res.status(500).send('Error retrieving chat history.');
     }
   });

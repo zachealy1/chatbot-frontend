@@ -1,7 +1,10 @@
+import { Logger } from '@hmcts/nodejs-logging';
 import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { Application, NextFunction, Request, Response } from 'express';
 import { CookieJar } from 'tough-cookie';
+
+const logger = Logger.getLogger('app');
 
 export default function (app: Application): void {
 
@@ -48,7 +51,7 @@ export default function (app: Application): void {
 
       req.session.save(err => {
         if (err) {
-          console.error('Error saving session:', err);
+          logger.error('Error saving session:', err);
           return res.render('login', {
             error: req.__('loginSessionError'),
             username
@@ -62,7 +65,7 @@ export default function (app: Application): void {
       });
 
     } catch (err: any) {
-      console.error('Full login error:', err.response || err.message);
+      logger.error('Full login error:', err.response || err.message);
 
       const backendMsg = typeof err.response?.data === 'string'
         ? err.response.data

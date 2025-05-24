@@ -1,9 +1,12 @@
 import { ensureAuthenticated } from '../modules/auth';
 
+import { Logger } from '@hmcts/nodejs-logging';
 import axios from 'axios';
 import { wrapper } from 'axios-cookiejar-support';
 import { Application } from 'express';
 import { CookieJar } from 'tough-cookie';
+
+const logger = Logger.getLogger('app');
 
 export default function (app: Application): void {
   app.get('/contact-support', ensureAuthenticated, async (req, res) => {
@@ -40,7 +43,7 @@ export default function (app: Application): void {
       // Render the template with the mapped banner data.
       res.render('contact-support', { supportBanner });
     } catch (error) {
-      console.error('Error fetching support banner:', error);
+      logger.error('Error fetching support banner:', error);
       res.render('contact-support', {
         supportBanner: {
           titleText: 'Contact Support Team',
