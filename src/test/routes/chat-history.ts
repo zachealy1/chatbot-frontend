@@ -21,7 +21,7 @@ describe('GET /chat-history', () => {
       .stub(require('../../main/modules/auth'), 'ensureAuthenticated')
       .callsFake((_req: Request, _res: Response, next: NextFunction) => next());
 
-    // stub axios-cookiejar-support.wrapper → our fake client
+    // stub axios-cookiejar-support.wrapper -> our fake client
     stubClient = { get: sinon.stub() };
     sinon
       .stub(axiosCookie, 'wrapper')
@@ -45,7 +45,7 @@ describe('GET /chat-history', () => {
       next();
     });
 
-    // override res.render → JSON
+    // override res.render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();
@@ -251,7 +251,7 @@ describe('GET /open-chat-history', () => {
       next();
     });
 
-    // stub render → JSON
+    // stub render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();

@@ -10,7 +10,7 @@ describe('GET /forgot-password', () => {
   function mkApp() {
     const app: Application = express();
 
-    // stub res.render → JSON
+    // stub res.render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();
@@ -124,7 +124,7 @@ describe('GET /forgot-password/reset-password', () => {
   function mkApp() {
     const app: Application = express();
 
-    // stub res.render → JSON
+    // stub res.render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();
@@ -152,7 +152,7 @@ describe('POST /forgot-password/enter-email', () => {
 
   beforeEach(() => {
     sinon.stub(console, 'error');
-    // stub axios-cookiejar-support.wrapper → our fake client
+    // stub axios-cookiejar-support.wrapper -> our fake client
     stubClient = {
       get: sinon.stub(),
       post: sinon.stub(),
@@ -185,7 +185,7 @@ describe('POST /forgot-password/enter-email', () => {
       next();
     });
 
-    // override render → JSON
+    // override render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();
@@ -351,7 +351,7 @@ describe('POST /forgot-password/reset-password', () => {
       next();
     });
 
-    // override render → JSON
+    // override render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();
@@ -512,7 +512,7 @@ describe('POST /forgot-password/verify-otp', () => {
       next();
     });
 
-    // override render → JSON
+    // override render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();

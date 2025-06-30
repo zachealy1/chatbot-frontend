@@ -11,7 +11,7 @@ describe('GET /login', () => {
   function mkApp() {
     const app: Application = express();
 
-    // stub res.render → JSON
+    // stub res.render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, options?: any) => res.json({ view, options });
       next();
@@ -86,7 +86,7 @@ describe('POST /login', () => {
     // silence console.error
     sinon.stub(console, 'error');
 
-    // stub wrapper() → our fake client
+    // stub wrapper() -> our fake client
     stubClient = {
       get: sinon.stub(),
       post: sinon.stub(),
@@ -138,7 +138,7 @@ describe('POST /login', () => {
       next();
     });
 
-    // override render → JSON
+    // override render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();

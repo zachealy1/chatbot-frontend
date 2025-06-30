@@ -135,7 +135,7 @@ describe('GET /chat', () => {
   function mkApp() {
     const app: Application = express();
 
-    // stub render → JSON
+    // stub render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string) => res.json({ view });
       next();

@@ -10,7 +10,7 @@ describe('GET /register', () => {
   function mkApp() {
     const app: Application = express();
 
-    // stub res.render → JSON
+    // stub res.render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();
@@ -68,7 +68,7 @@ describe('POST /register', () => {
       next();
     });
 
-    // override res.render → JSON
+    // override res.render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();

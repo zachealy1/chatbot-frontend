@@ -88,7 +88,7 @@ describe('GET /account', () => {
       next();
     });
 
-    // Stub out res.render → JSON again
+    // Stub out res.render -> JSON again
     app.use((req, res, next) => {
       res.render = (view: string, options?: any) => res.json({ view, options });
       next();
@@ -122,7 +122,7 @@ describe('POST /account/update', () => {
     // silence any console.error from the route handlers
     sinon.stub(console, 'error');
 
-    // stub wrapper() → our fake client
+    // stub wrapper() -> our fake client
     stubClient = {
       get: sinon.stub(),
       post: sinon.stub(),
@@ -164,7 +164,7 @@ describe('POST /account/update', () => {
       next();
     });
 
-    // override res.render → JSON
+    // override res.render -> JSON
     app.use((req, res, next) => {
       res.render = (view: string, opts?: any) => res.json({ view, options: opts });
       next();
