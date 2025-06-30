@@ -31,10 +31,10 @@ export default function (app: Application): void {
 
   app.post('/forgot-password/enter-email', async (req, res) => {
     const { email } = req.body;
-    // 1) Pick up the lang cookie (defaults to 'en')
+    // Pick up the lang cookie (defaults to 'en')
     const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
 
-    // 2) Server-side validation
+    // Server-side validation
     const fieldErrors = {} as any;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
@@ -50,7 +50,7 @@ export default function (app: Application): void {
       });
     }
 
-    // 3) CSRF & axios client setup
+    // CSRF & axios client setup
     const jar = new CookieJar();
     jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
     const client = wrapper(axios.create({
@@ -62,20 +62,20 @@ export default function (app: Application): void {
     }));
 
     try {
-      // 4) Fetch CSRF token
+      // Fetch CSRF token
       const { data: { csrfToken } } = await client.get('/csrf');
 
-      // 5) Call backend forgot-password endpoint
+      // Call backend forgot-password endpoint
       await client.post(
         '/forgot-password/enter-email',
         { email },
         { headers: { 'X-XSRF-TOKEN': csrfToken } }
       );
 
-      // 6) Save email in session for OTP step
+      // Save email in session for OTP step
       (req.session as any).email = email;
 
-      // 7) Redirect to OTP page
+      // Redirect to OTP page
       return res.redirect('/forgot-password/verify-otp?lang=' + lang);
 
     } catch (err) {
@@ -100,7 +100,7 @@ export default function (app: Application): void {
     const email = (req.session as any).email;
     const otp   = (req.session as any).verifiedOtp;
 
-    // 1) Server-side validation
+    // Server-side validation
     const fieldErrors: Record<string,string> = {};
 
     if (!password) {
@@ -132,7 +132,7 @@ export default function (app: Application): void {
       });
     }
 
-    // 2) Prepare Axios + CSRF + lang cookie
+    // Prepare Axios + CSRF + lang cookie
     const jar = new CookieJar();
     jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
     const client = wrapper(axios.create({
@@ -144,17 +144,17 @@ export default function (app: Application): void {
     }));
 
     try {
-      // 3) Fetch CSRF token
+      // Fetch CSRF token
       const { data: { csrfToken } } = await client.get('/csrf');
 
-      // 4) Call backend to reset-password
+      // Call backend to reset-password
       await client.post(
         '/forgot-password/reset-password',
         { email, otp, password, confirmPassword },
         { headers: { 'X-XSRF-TOKEN': csrfToken } }
       );
 
-      // 5) On success, redirect to login with reset banner
+      // On success, redirect to login with reset banner
       return res.redirect(`/login?passwordReset=true&lang=${lang}`);
 
     } catch (err: any) {
@@ -181,7 +181,7 @@ export default function (app: Application): void {
     const email = (req.session as any).email;
     const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
 
-    // 1) Server-side validation
+    // Server-side validation
     const fieldErrors: Record<string,string> = {};
 
     if (!email) {
@@ -201,7 +201,7 @@ export default function (app: Application): void {
       });
     }
 
-    // 2) Prepare axios with CSRF & lang
+    // Prepare axios with CSRF & lang
     const jar = new CookieJar();
     jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
     const client = wrapper(axios.create({
@@ -213,20 +213,20 @@ export default function (app: Application): void {
     }));
 
     try {
-      // 3) Fetch CSRF token
+      // Fetch CSRF token
       const { data: { csrfToken } } = await client.get('/csrf');
 
-      // 4) Call backend verify-otp
+      // Call backend verify-otp
       await client.post(
         '/forgot-password/verify-otp',
         { email, otp: oneTimePassword },
         { headers: { 'X-XSRF-TOKEN': csrfToken } }
       );
 
-      // 5) Mark OTP as verified in session
+      // Mark OTP as verified in session
       (req.session as any).verifiedOtp = oneTimePassword;
 
-      // 6) Redirect to reset-password
+      // Redirect to reset-password
       return res.redirect('/forgot-password/reset-password?lang=' + lang);
 
     } catch (err: any) {

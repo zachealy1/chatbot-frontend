@@ -69,7 +69,7 @@ export default function (app: Application): void {
       });
     }
 
-    // 3) Prepare axios client with CSRF and lang cookie
+    // Prepare axios client with CSRF and lang cookie
     const jar = new CookieJar();
     jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
     const client = wrapper(axios.create({
@@ -81,10 +81,10 @@ export default function (app: Application): void {
     }));
 
     try {
-      // 4) Fetch CSRF token
+      // Fetch CSRF token
       const { data: { csrfToken } } = await client.get('/csrf');
 
-      // 5) Perform registration
+      // Perform registration
       const dateOfBirth = dob.toISOString().slice(0,10);
       await client.post(
         '/account/register',
@@ -92,7 +92,7 @@ export default function (app: Application): void {
         { headers: { 'X-XSRF-TOKEN': csrfToken } }
       );
 
-      // 6) Redirect to login with success banner
+      // Redirect to login with success banner
       return res.redirect(`/login?created=true&lang=${lang}`);
 
     } catch (err: any) {

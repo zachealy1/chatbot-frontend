@@ -5,7 +5,7 @@ import { CookieJar } from 'tough-cookie';
 document.addEventListener('DOMContentLoaded', function () {
   console.log('DOM fully loaded and parsed');
 
-  // 1) Find the container element that holds the data attribute for chatId.
+  // Find the container element that holds the data attribute for chatId.
   const chatContainer = document.getElementById('chat-container');
   let currentChatId: number | null = null;
 

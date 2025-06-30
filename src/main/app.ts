@@ -48,7 +48,7 @@ i18n.configure({
 });
 app.use(i18n.init);
 
-// 3) only write the cookie when it really changes
+// Only write the cookie when it really changes
 app.use((req, res, next) => {
   // pick up from ?lang or existing cookie
   const requestedLang = (req.query.lang as string) || req.cookies.lang;

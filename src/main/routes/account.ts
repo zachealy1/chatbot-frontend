@@ -73,10 +73,10 @@ export default function (app: Application): void {
       'date-of-birth-year': year,
     } = req.body;
 
-    // 1) Pick up the lang cookie (defaults to 'en')
+    // Pick up the lang cookie (defaults to 'en')
     const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
 
-    // 2) Server-side validation
+    // Server-side validation
     const fieldErrors: Record<string,string> = {};
 
     // Username
@@ -102,14 +102,14 @@ export default function (app: Application): void {
     if (password || confirmPassword) {
       const strongPwd = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
 
-      // 1) Password required & strength
+      // Password required & strength
       if (!password) {
         fieldErrors.password = req.__('passwordRequired');
       } else if (!strongPwd.test(password)) {
         fieldErrors.password = req.__('passwordCriteria');
       }
 
-      // 2) Confirm-password required, strength, & match
+      // Confirm-password required, strength, & match
       if (!confirmPassword) {
         fieldErrors.confirmPassword = req.__('confirmPasswordRequired');
       } else if (!strongPwd.test(confirmPassword)) {
@@ -132,11 +132,11 @@ export default function (app: Application): void {
       });
     }
 
-    // 3) Prepare payload for backend
+    // Prepare payload for backend
     const dateOfBirth = dob.toISOString().slice(0,10);
     const payload = { username, email, dateOfBirth, password, confirmPassword };
 
-    // 4) Retrieve Spring session cookie
+    // Retrieve Spring session cookie
     const storedCookie =
       (req.user as any)?.springSessionCookie ||
       (req.session as any)?.springSessionCookie ||
@@ -155,7 +155,7 @@ export default function (app: Application): void {
       });
     }
 
-    // 5) Create axios client with CSRF and lang cookie
+    // Create axios client with CSRF and lang cookie
     const jar = new CookieJar();
     jar.setCookieSync(storedCookie, 'http://localhost:4550');
     const client = wrapper(axios.create({
