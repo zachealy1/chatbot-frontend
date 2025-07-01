@@ -175,7 +175,7 @@ export default function (app: Application): void {
     }
   });
 
-// POST: validate & submit OTP
+  // POST: validate & submit OTP
   app.post('/forgot-password/verify-otp', async (req, res) => {
     const { oneTimePassword } = req.body;
     const email = (req.session as any).email;
