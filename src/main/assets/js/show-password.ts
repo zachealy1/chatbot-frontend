@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Query all toggle buttons
   const toggleButtons = document.querySelectorAll<HTMLButtonElement>('.toggle-button');
 
-  toggleButtons.forEach((button) => {
+  toggleButtons.forEach(button => {
     button.addEventListener('click', () => {
       // Get the target input ID from data attribute
       const targetId = button.getAttribute('data-target');

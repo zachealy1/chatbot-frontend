@@ -18,9 +18,7 @@ describe('POST /chat', () => {
       get: sinon.stub(),
       post: sinon.stub(),
     };
-    sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
@@ -48,11 +46,7 @@ describe('POST /chat', () => {
 
   it('returns 401 when no session or user cookie is present', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .post('/chat')
-      .send({ message: 'hello' })
-      .expect(401)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/chat').send({ message: 'hello' }).expect(401).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       error: 'Session expired or invalid. Please log in again.',
@@ -60,9 +54,7 @@ describe('POST /chat', () => {
   });
 
   it('forwards message to backend and returns its response', async () => {
-    stubClient.get
-      .withArgs('http://localhost:4550/csrf')
-      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.get.withArgs('http://localhost:4550/csrf').resolves({ data: { csrfToken: 'tok123' } });
     stubClient.post
       .withArgs(
         'http://localhost:4550/chat',
@@ -73,11 +65,7 @@ describe('POST /chat', () => {
 
     const app = mkApp('SESSION=foo');
     const payload = { message: 'hi', chatId: 'abc' };
-    const res = await request(app)
-      .post('/chat')
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/chat').send(payload).expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       chatId: 'abc',
@@ -90,11 +78,7 @@ describe('POST /chat', () => {
     stubClient.get.rejects(new Error('csrf error'));
 
     const app = mkApp('SESSION=foo');
-    const res = await request(app)
-      .post('/chat')
-      .send({ message: 'hello' })
-      .expect(500)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/chat').send({ message: 'hello' }).expect(500).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       error: 'An error occurred while sending the chat message. Please try again later.',
@@ -147,10 +131,7 @@ describe('GET /chat', () => {
 
   it('renders the chat view when authenticated', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .get('/chat')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/chat').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({ view: 'chat' });
     expect(ensureStub.calledOnce).to.be.true;
@@ -159,12 +140,11 @@ describe('GET /chat', () => {
   it('redirects to /login when not authenticated', async () => {
     // simulate an unauthenticated user
     ensureStub.restore();
-    sinon.stub(authModule, 'ensureAuthenticated').callsFake((_req: Request, res: any) => {res.redirect('/login');});
+    sinon.stub(authModule, 'ensureAuthenticated').callsFake((_req: Request, res: any) => {
+      res.redirect('/login');
+    });
 
     const app = mkApp();
-    await request(app)
-      .get('/chat')
-      .expect(302)
-      .expect('Location', '/login');
+    await request(app).get('/chat').expect(302).expect('Location', '/login');
   });
 });

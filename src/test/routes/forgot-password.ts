@@ -22,10 +22,7 @@ describe('GET /forgot-password', () => {
 
   it('renders the forgot-password view', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .get('/forgot-password')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/forgot-password').expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('forgot-password');
     expect(res.body.options).to.be.undefined;
@@ -49,10 +46,7 @@ describe('GET /forgot-password/verify-otp', () => {
 
   it('renders default verify-otp view with lang=en and sent=false', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .get('/forgot-password/verify-otp')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/forgot-password/verify-otp').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'verify-otp',
@@ -85,10 +79,7 @@ describe('GET /forgot-password/verify-otp', () => {
 
   it('renders with lang=cy when lang cookie is cy', async () => {
     const app = mkApp({ lang: 'cy' });
-    const res = await request(app)
-      .get('/forgot-password/verify-otp')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/forgot-password/verify-otp').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'verify-otp',
@@ -136,10 +127,7 @@ describe('GET /forgot-password/reset-password', () => {
 
   it('renders the reset-password view', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .get('/forgot-password/reset-password')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/forgot-password/reset-password').expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('reset-password');
     expect(res.body.options).to.be.undefined;
@@ -157,9 +145,7 @@ describe('POST /forgot-password/enter-email', () => {
       get: sinon.stub(),
       post: sinon.stub(),
     };
-    wrapperStub = sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    wrapperStub = sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
@@ -230,15 +216,9 @@ describe('POST /forgot-password/enter-email', () => {
 
   it('redirects to verify-otp on successful submit (lang=en)', async () => {
     const email = 'user@example.com';
-    stubClient.get
-      .withArgs('/csrf')
-      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.get.withArgs('/csrf').resolves({ data: { csrfToken: 'tok123' } });
     stubClient.post
-      .withArgs(
-        '/forgot-password/enter-email',
-        { email },
-        sinon.match({ headers: { 'X-XSRF-TOKEN': 'tok123' } })
-      )
+      .withArgs('/forgot-password/enter-email', { email }, sinon.match({ headers: { 'X-XSRF-TOKEN': 'tok123' } }))
       .resolves({});
 
     const app = mkApp(); // default lang=en
@@ -252,9 +232,7 @@ describe('POST /forgot-password/enter-email', () => {
 
   it('redirects to verify-otp on successful submit (lang=cy)', async () => {
     const email = 'user2@example.com';
-    stubClient.get
-      .withArgs('/csrf')
-      .resolves({ data: { csrfToken: 'tokABC' } });
+    stubClient.get.withArgs('/csrf').resolves({ data: { csrfToken: 'tokABC' } });
     stubClient.post.resolves({});
 
     const app = mkApp({ lang: 'cy' });
@@ -324,19 +302,19 @@ describe('POST /forgot-password/reset-password', () => {
       get: sinon.stub(),
       post: sinon.stub(),
     };
-    wrapperStub = sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    wrapperStub = sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
     sinon.restore();
   });
 
-  function mkApp(options: {
-    session?: Record<string, any>;
-    cookies?: Record<string, string>;
-  } = {}) {
+  function mkApp(
+    options: {
+      session?: Record<string, any>;
+      cookies?: Record<string, string>;
+    } = {}
+  ) {
     const { session = {}, cookies = {} } = options;
     const app: Application = express();
 
@@ -400,9 +378,7 @@ describe('POST /forgot-password/reset-password', () => {
 
   it('redirects to login with reset banner on success (lang=en)', async () => {
     const session = { email: 'user@example.com', verifiedOtp: 'otp123' };
-    stubClient.get
-      .withArgs('/csrf')
-      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.get.withArgs('/csrf').resolves({ data: { csrfToken: 'tok123' } });
     stubClient.post
       .withArgs(
         '/forgot-password/reset-password',
@@ -485,19 +461,19 @@ describe('POST /forgot-password/verify-otp', () => {
       get: sinon.stub(),
       post: sinon.stub(),
     };
-    wrapperStub = sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    wrapperStub = sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
     sinon.restore();
   });
 
-  function mkApp(options: {
-    session?: Record<string, any>;
-    cookies?: Record<string, string>;
-  } = {}) {
+  function mkApp(
+    options: {
+      session?: Record<string, any>;
+      cookies?: Record<string, string>;
+    } = {}
+  ) {
     const { session = {}, cookies = {} } = options;
     const app: Application = express();
 
@@ -588,9 +564,7 @@ describe('POST /forgot-password/verify-otp', () => {
   });
 
   it('redirects to reset-password on successful OTP verify (lang=en)', async () => {
-    stubClient.get
-      .withArgs('/csrf')
-      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.get.withArgs('/csrf').resolves({ data: { csrfToken: 'tok123' } });
     stubClient.post
       .withArgs(
         '/forgot-password/verify-otp',
@@ -689,9 +663,7 @@ describe('POST /forgot-password/resend-otp', () => {
       get: sinon.stub(),
       post: sinon.stub(),
     };
-    wrapperStub = sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    wrapperStub = sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
@@ -717,10 +689,7 @@ describe('POST /forgot-password/resend-otp', () => {
 
   it('re-renders verify-otp with error when no email in session', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .post('/forgot-password/resend-otp')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/forgot-password/resend-otp').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'verify-otp',
@@ -733,10 +702,7 @@ describe('POST /forgot-password/resend-otp', () => {
 
   it('re-renders verify-otp with error when email invalid', async () => {
     const app = mkApp({ email: 'not-an-email' });
-    const res = await request(app)
-      .post('/forgot-password/resend-otp')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/forgot-password/resend-otp').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'verify-otp',
@@ -749,9 +715,7 @@ describe('POST /forgot-password/resend-otp', () => {
 
   it('redirects to verify-otp on successful resend', async () => {
     // stub CSRF fetch
-    stubClient.get
-      .withArgs('http://localhost:4550/csrf')
-      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.get.withArgs('http://localhost:4550/csrf').resolves({ data: { csrfToken: 'tok123' } });
 
     // stub resend-otp post
     stubClient.post
@@ -777,10 +741,7 @@ describe('POST /forgot-password/resend-otp', () => {
     stubClient.post.rejects(err);
 
     const app = mkApp({ email: 'user2@example.com' });
-    const res = await request(app)
-      .post('/forgot-password/resend-otp')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/forgot-password/resend-otp').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'verify-otp',
@@ -798,18 +759,14 @@ describe('POST /forgot-password/resend-otp', () => {
     stubClient.post.rejects(err);
 
     const app = mkApp({ email: 'user3@example.com' });
-    const res = await request(app)
-      .post('/forgot-password/resend-otp')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/forgot-password/resend-otp').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'verify-otp',
       options: {
-        error: { 'code': 'ERR' },
+        error: { code: 'ERR' },
       },
     });
     expect(wrapperStub.calledOnce).to.be.true;
   });
 });
-

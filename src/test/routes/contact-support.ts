@@ -24,9 +24,7 @@ describe('GET /contact-support', () => {
 
     // fake axios client
     stubClient = { get: sinon.stub() };
-    wrapperStub = sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    wrapperStub = sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
@@ -58,10 +56,7 @@ describe('GET /contact-support', () => {
 
   it('renders fallback banner when no session cookie', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .get('/contact-support')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/contact-support').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'contact-support',
@@ -78,15 +73,10 @@ describe('GET /contact-support', () => {
 
   it('fetches banner and renders it when session cookie present', async () => {
     const fetched = { title: 'Help', content: '<p>help content</p>' };
-    stubClient.get
-      .withArgs('http://localhost:4550/support-banner/1')
-      .resolves({ data: fetched });
+    stubClient.get.withArgs('http://localhost:4550/support-banner/1').resolves({ data: fetched });
 
     const app = mkApp('SESSION=abc');
-    const res = await request(app)
-      .get('/contact-support')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/contact-support').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'contact-support',
@@ -105,10 +95,7 @@ describe('GET /contact-support', () => {
     stubClient.get.rejects(new Error('fetch failed'));
 
     const app = mkApp('SESSION=abc');
-    const res = await request(app)
-      .get('/contact-support')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/contact-support').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'contact-support',

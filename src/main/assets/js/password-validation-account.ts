@@ -22,7 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Only validate if the password field is not empty
     if (passwordInput.value) {
       if (!passwordCriteriaRegex.test(passwordInput.value)) {
-        passwordErrorMessage = 'Your password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.';
+        passwordErrorMessage =
+          'Your password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.';
       } else if (passwordInput.value !== confirmPasswordInput.value) {
         passwordErrorMessage = 'Passwords do not match.';
       }

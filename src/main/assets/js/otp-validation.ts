@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Resend Email button clicked.');
   });
 
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', event => {
     console.log('Form submitted.');
     if (clickedButton === 'resend') {
       console.log('Resend action detected. Skipping OTP validation.');
@@ -46,7 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Remove existing error message and styling
     const existingError = otpGroup.querySelector('#one-time-password-error') as HTMLElement | null;
-    if (existingError) { existingError.remove(); }
+    if (existingError) {
+      existingError.remove();
+    }
 
     otpInput.classList.remove('govuk-input--error');
     otpInput.setAttribute('aria-describedby', 'one-time-password-hint');

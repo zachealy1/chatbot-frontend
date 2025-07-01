@@ -62,7 +62,7 @@ export default function (app: Application): void {
     }
   });
 
-// GET route for the chat screen
+  // GET route for the chat screen
   app.get('/chat', ensureAuthenticated, (req, res) => {
     res.render('chat');
   });

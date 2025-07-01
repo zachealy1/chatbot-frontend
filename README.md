@@ -31,6 +31,7 @@ Before running the application, ensure you have the following tools installed:
 ### Installation and Running
 
 Install dependencies:
+
 ```bash
 yarn install
 ```

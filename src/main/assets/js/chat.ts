@@ -25,12 +25,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const jar = new CookieJar();
 
   // Create an axios client with cookie jar support and proper XSRF configuration
-  const client = wrapper(axios.create({
-    jar,
-    withCredentials: true,
-    xsrfCookieName: 'XSRF-TOKEN',
-    xsrfHeaderName: 'X-XSRF-TOKEN'
-  }));
+  const client = wrapper(
+    axios.create({
+      jar,
+      withCredentials: true,
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN',
+    })
+  );
 
   // Grab DOM elements
   const sendButton = document.getElementById('send-button') as HTMLButtonElement | null;
@@ -72,7 +74,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Create message container
     const messageContainer = document.createElement('div');
-    messageContainer.classList.add('govuk-chat-message', isUser ? 'govuk-chat-message--user' : 'govuk-chat-message--bot');
+    messageContainer.classList.add(
+      'govuk-chat-message',
+      isUser ? 'govuk-chat-message--user' : 'govuk-chat-message--bot'
+    );
 
     // Create a visually hidden label for accessibility
     const visuallyHiddenSpan = document.createElement('span');
@@ -176,7 +181,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Make a POST request to the chat backend route
-    client.post('/chat', payload)
+    client
+      .post('/chat', payload)
       .then(response => {
         console.log('Chat response:', response.data);
         const data = response.data;

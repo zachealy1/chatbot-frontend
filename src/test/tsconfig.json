@@ -8,12 +8,6 @@
     "esModuleInterop": true,
     "module": "commonjs",
     "strictNullChecks": true,
-    "types": [
-      "codeceptjs",
-      "node",
-      "chai",
-      "supertest",
-      "mocha"
-    ]
+    "types": ["codeceptjs", "node", "chai", "supertest", "mocha"]
   }
 }

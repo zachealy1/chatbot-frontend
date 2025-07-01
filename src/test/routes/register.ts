@@ -22,10 +22,7 @@ describe('GET /register', () => {
 
   it('renders the register view', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .get('/register')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/register').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'register',
@@ -46,9 +43,7 @@ describe('POST /register', () => {
       get: sinon.stub(),
       post: sinon.stub(),
     };
-    wrapperStub = sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    wrapperStub = sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
@@ -80,21 +75,11 @@ describe('POST /register', () => {
 
   it('re-renders with validation errors when body is empty', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .post('/register')
-      .send({})
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/register').send({}).expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('register');
     const errs = res.body.options.fieldErrors;
-    expect(errs).to.include.keys(
-      'username',
-      'email',
-      'dateOfBirth',
-      'password',
-      'confirmPassword'
-    );
+    expect(errs).to.include.keys('username', 'email', 'dateOfBirth', 'password', 'confirmPassword');
     expect(wrapperStub.notCalled).to.be.true;
   });
 
@@ -109,24 +94,15 @@ describe('POST /register', () => {
       password: 'StrongP@ss1',
       confirmPassword: 'WrongP@ss2',
     };
-    const res = await request(app)
-      .post('/register')
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/register').send(payload).expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('register');
-    expect(res.body.options.fieldErrors).to.have.property(
-      'confirmPassword',
-      'passwordsMismatch'
-    );
+    expect(res.body.options.fieldErrors).to.have.property('confirmPassword', 'passwordsMismatch');
     expect(wrapperStub.notCalled).to.be.true;
   });
 
   it('redirects to login?created=true&lang=en on successful registration', async () => {
-    stubClient.get
-      .withArgs('/csrf')
-      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.get.withArgs('/csrf').resolves({ data: { csrfToken: 'tok123' } });
     stubClient.post.resolves({});
 
     const app = mkApp();
@@ -139,11 +115,7 @@ describe('POST /register', () => {
       password: 'StrongP@ss1',
       confirmPassword: 'StrongP@ss1',
     };
-    await request(app)
-      .post('/register')
-      .send(payload)
-      .expect(302)
-      .expect('Location', '/login?created=true&lang=en');
+    await request(app).post('/register').send(payload).expect(302).expect('Location', '/login?created=true&lang=en');
     expect(wrapperStub.calledOnce).to.be.true;
   });
 
@@ -161,11 +133,7 @@ describe('POST /register', () => {
       password: 'StrongP@ss1',
       confirmPassword: 'StrongP@ss1',
     };
-    await request(app)
-      .post('/register')
-      .send(payload)
-      .expect(302)
-      .expect('Location', '/login?created=true&lang=cy');
+    await request(app).post('/register').send(payload).expect(302).expect('Location', '/login?created=true&lang=cy');
     expect(wrapperStub.calledOnce).to.be.true;
   });
 
@@ -185,11 +153,7 @@ describe('POST /register', () => {
       password: 'StrongP@ss1',
       confirmPassword: 'StrongP@ss1',
     };
-    const res = await request(app)
-      .post('/register')
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/register').send(payload).expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('register');
     expect(res.body.options.fieldErrors).to.deep.include({
@@ -214,11 +178,7 @@ describe('POST /register', () => {
       password: 'StrongP@ss1',
       confirmPassword: 'StrongP@ss1',
     };
-    const res = await request(app)
-      .post('/register')
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/register').send(payload).expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('register');
     expect(res.body.options.fieldErrors).to.deep.include({

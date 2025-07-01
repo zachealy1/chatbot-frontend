@@ -9,7 +9,6 @@ import { CookieJar } from 'tough-cookie';
 const logger = Logger.getLogger('app');
 
 export default function (app: Application): void {
-
   app.get('/account', ensureAuthenticated, async (req, res) => {
     try {
       const storedCookie = (req.user as any)?.springSessionCookie || (req.session as any)?.springSessionCookie || '';
@@ -77,7 +76,7 @@ export default function (app: Application): void {
     const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
 
     // Server-side validation
-    const fieldErrors: Record<string,string> = {};
+    const fieldErrors: Record<string, string> = {};
 
     // Username
     if (!username?.trim()) {
@@ -90,9 +89,7 @@ export default function (app: Application): void {
     }
 
     // Date of birth
-    const dob = new Date(
-      `${year?.padStart(2,'0')}-${month?.padStart(2,'0')}-${day?.padStart(2,'0')}`
-    );
+    const dob = new Date(`${year?.padStart(2, '0')}-${month?.padStart(2, '0')}-${day?.padStart(2, '0')}`);
     const isPast = (d: Date) => d instanceof Date && !isNaN(d.getTime()) && d < new Date();
     if (!day || !month || !year || !isPast(dob)) {
       fieldErrors.dateOfBirth = req.__('dobInvalid');
@@ -128,19 +125,16 @@ export default function (app: Application): void {
         email,
         day,
         month,
-        year
+        year,
       });
     }
 
     // Prepare payload for backend
-    const dateOfBirth = dob.toISOString().slice(0,10);
+    const dateOfBirth = dob.toISOString().slice(0, 10);
     const payload = { username, email, dateOfBirth, password, confirmPassword };
 
     // Retrieve Spring session cookie
-    const storedCookie =
-      (req.user as any)?.springSessionCookie ||
-      (req.session as any)?.springSessionCookie ||
-      '';
+    const storedCookie = (req.user as any)?.springSessionCookie || (req.session as any)?.springSessionCookie || '';
 
     if (!storedCookie) {
       fieldErrors.general = req.__('sessionExpired');
@@ -151,28 +145,32 @@ export default function (app: Application): void {
         email,
         day,
         month,
-        year
+        year,
       });
     }
 
     // Create axios client with CSRF and lang cookie
     const jar = new CookieJar();
     jar.setCookieSync(storedCookie, 'http://localhost:4550');
-    const client = wrapper(axios.create({
-      baseURL: 'http://localhost:4550',
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN'
-    }));
+    const client = wrapper(
+      axios.create({
+        baseURL: 'http://localhost:4550',
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     try {
       // Fetch CSRF token
-      const { data: { csrfToken } } = await client.get('/csrf');
+      const {
+        data: { csrfToken },
+      } = await client.get('/csrf');
 
       // Submit the update
       await client.post('/account/update', payload, {
-        headers: { 'X-XSRF-TOKEN': csrfToken }
+        headers: { 'X-XSRF-TOKEN': csrfToken },
       });
 
       // On success, redirect back with a success flag
@@ -187,7 +185,7 @@ export default function (app: Application): void {
         email,
         day,
         month,
-        year
+        year,
       });
     }
   });

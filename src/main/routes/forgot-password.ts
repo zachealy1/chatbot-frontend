@@ -7,7 +7,6 @@ import { CookieJar } from 'tough-cookie';
 const logger = Logger.getLogger('app');
 
 export default function (app: Application): void {
-
   app.get('/forgot-password', (req, res) => {
     res.render('forgot-password');
   });
@@ -21,7 +20,7 @@ export default function (app: Application): void {
       lang,
       sent,
       fieldErrors: {},
-      oneTimePassword: ''
+      oneTimePassword: '',
     });
   });
 
@@ -46,50 +45,47 @@ export default function (app: Application): void {
       return res.render('forgot-password', {
         lang,
         fieldErrors,
-        email
+        email,
       });
     }
 
     // CSRF & axios client setup
     const jar = new CookieJar();
     jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
-    const client = wrapper(axios.create({
-      baseURL: 'http://localhost:4550',
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN'
-    }));
+    const client = wrapper(
+      axios.create({
+        baseURL: 'http://localhost:4550',
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     try {
       // Fetch CSRF token
-      const { data: { csrfToken } } = await client.get('/csrf');
+      const {
+        data: { csrfToken },
+      } = await client.get('/csrf');
 
       // Call backend forgot-password endpoint
-      await client.post(
-        '/forgot-password/enter-email',
-        { email },
-        { headers: { 'X-XSRF-TOKEN': csrfToken } }
-      );
+      await client.post('/forgot-password/enter-email', { email }, { headers: { 'X-XSRF-TOKEN': csrfToken } });
 
       // Save email in session for OTP step
       (req.session as any).email = email;
 
       // Redirect to OTP page
       return res.redirect('/forgot-password/verify-otp?lang=' + lang);
-
     } catch (err) {
       logger.error('[ForgotPassword] Error:', err.response || err.message);
 
       // fallback general error
-      fieldErrors.general = typeof err.response?.data === 'string'
-        ? err.response.data
-        : req.__('forgotPasswordError');
+      fieldErrors.general = typeof err.response?.data === 'string' ? err.response.data : req.__('forgotPasswordError');
 
       return res.render('forgot-password', {
         lang,
         fieldErrors,
-        email
+        email,
       });
     }
   });
@@ -98,10 +94,10 @@ export default function (app: Application): void {
     const { password, confirmPassword } = req.body;
     const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
     const email = (req.session as any).email;
-    const otp   = (req.session as any).verifiedOtp;
+    const otp = (req.session as any).verifiedOtp;
 
     // Server-side validation
-    const fieldErrors: Record<string,string> = {};
+    const fieldErrors: Record<string, string> = {};
 
     if (!password) {
       fieldErrors.password = req.__('passwordRequired');
@@ -128,24 +124,28 @@ export default function (app: Application): void {
         lang,
         fieldErrors,
         password,
-        confirmPassword
+        confirmPassword,
       });
     }
 
     // Prepare Axios + CSRF + lang cookie
     const jar = new CookieJar();
     jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
-    const client = wrapper(axios.create({
-      baseURL: 'http://localhost:4550',
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN'
-    }));
+    const client = wrapper(
+      axios.create({
+        baseURL: 'http://localhost:4550',
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     try {
       // Fetch CSRF token
-      const { data: { csrfToken } } = await client.get('/csrf');
+      const {
+        data: { csrfToken },
+      } = await client.get('/csrf');
 
       // Call backend to reset-password
       await client.post(
@@ -156,21 +156,17 @@ export default function (app: Application): void {
 
       // On success, redirect to login with reset banner
       return res.redirect(`/login?passwordReset=true&lang=${lang}`);
-
     } catch (err: any) {
       logger.error('[ForgotPassword] Reset error:', err.response || err.message);
 
       // backend error msg or fallback
-      fieldErrors.general =
-        typeof err.response?.data === 'string'
-          ? err.response.data
-          : req.__('resetError');
+      fieldErrors.general = typeof err.response?.data === 'string' ? err.response.data : req.__('resetError');
 
       return res.render('reset-password', {
         lang,
         fieldErrors,
         password,
-        confirmPassword
+        confirmPassword,
       });
     }
   });
@@ -182,7 +178,7 @@ export default function (app: Application): void {
     const lang = req.cookies.lang === 'cy' ? 'cy' : 'en';
 
     // Server-side validation
-    const fieldErrors: Record<string,string> = {};
+    const fieldErrors: Record<string, string> = {};
 
     if (!email) {
       fieldErrors.general = req.__('noEmailInSession');
@@ -197,24 +193,28 @@ export default function (app: Application): void {
         lang,
         sent: false,
         fieldErrors,
-        oneTimePassword
+        oneTimePassword,
       });
     }
 
     // Prepare axios with CSRF & lang
     const jar = new CookieJar();
     jar.setCookieSync(`lang=${lang}`, 'http://localhost:4550');
-    const client = wrapper(axios.create({
-      baseURL: 'http://localhost:4550',
-      jar,
-      withCredentials: true,
-      xsrfCookieName: 'XSRF-TOKEN',
-      xsrfHeaderName: 'X-XSRF-TOKEN'
-    }));
+    const client = wrapper(
+      axios.create({
+        baseURL: 'http://localhost:4550',
+        jar,
+        withCredentials: true,
+        xsrfCookieName: 'XSRF-TOKEN',
+        xsrfHeaderName: 'X-XSRF-TOKEN',
+      })
+    );
 
     try {
       // Fetch CSRF token
-      const { data: { csrfToken } } = await client.get('/csrf');
+      const {
+        data: { csrfToken },
+      } = await client.get('/csrf');
 
       // Call backend verify-otp
       await client.post(
@@ -228,21 +228,17 @@ export default function (app: Application): void {
 
       // Redirect to reset-password
       return res.redirect('/forgot-password/reset-password?lang=' + lang);
-
     } catch (err: any) {
       logger.error('[ForgotPassword] OTP verify error:', err.response || err.message);
 
       // backend error (expired/invalid OTP)
-      fieldErrors.general =
-        typeof err.response?.data === 'string'
-          ? err.response.data
-          : req.__('otpVerifyError');
+      fieldErrors.general = typeof err.response?.data === 'string' ? err.response.data : req.__('otpVerifyError');
 
       return res.render('verify-otp', {
         lang,
         sent: false,
         fieldErrors,
-        oneTimePassword
+        oneTimePassword,
       });
     }
   });

@@ -23,9 +23,7 @@ describe('GET /chat-history', () => {
 
     // stub axios-cookiejar-support.wrapper -> our fake client
     stubClient = { get: sinon.stub() };
-    sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
@@ -57,10 +55,7 @@ describe('GET /chat-history', () => {
 
   it('renders an error view when no session cookie is present', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .get('/chat-history')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/chat-history').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'chat-history',
@@ -73,23 +68,24 @@ describe('GET /chat-history', () => {
 
   it('fetches chat history and renders it when session cookie is present', async () => {
     // stub CSRF token fetch
-    stubClient.get
-      .withArgs('http://localhost:4550/csrf')
-      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.get.withArgs('http://localhost:4550/csrf').resolves({ data: { csrfToken: 'tok123' } });
 
     // stub chats fetch
-    const sampleChats = [{ id: 1, message: 'hello' }, { id: 2, message: 'world' }];
+    const sampleChats = [
+      { id: 1, message: 'hello' },
+      { id: 2, message: 'world' },
+    ];
     stubClient.get
-      .withArgs('http://localhost:4550/chat/chats', sinon.match({
-        headers: { 'X-XSRF-TOKEN': 'tok123' },
-      }))
+      .withArgs(
+        'http://localhost:4550/chat/chats',
+        sinon.match({
+          headers: { 'X-XSRF-TOKEN': 'tok123' },
+        })
+      )
       .resolves({ data: sampleChats });
 
     const app = mkApp('SESSION=abc');
-    const res = await request(app)
-      .get('/chat-history')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/chat-history').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'chat-history',
@@ -119,9 +115,7 @@ describe('GET /delete-chat-history', () => {
       get: sinon.stub(),
       delete: sinon.stub(),
     };
-    wrapperStub = sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    wrapperStub = sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
@@ -148,16 +142,13 @@ describe('GET /delete-chat-history', () => {
 
   it('returns 400 if chatId is missing', async () => {
     const app = mkApp('SESSION=abc');
-    await request(app)
-      .get('/delete-chat-history')
-      .expect(400)
-      .expect('Missing chatId parameter.');
+    await request(app).get('/delete-chat-history').expect(400).expect('Missing chatId parameter.');
     expect(ensureStub.calledOnce).to.be.true;
     expect(wrapperStub.notCalled).to.be.true;
   });
 
   it('returns 401 if no session cookie is present', async () => {
-    const app = mkApp();  // no sessionCookie
+    const app = mkApp(); // no sessionCookie
     await request(app)
       .get('/delete-chat-history?chatId=123')
       .expect(401)
@@ -168,14 +159,15 @@ describe('GET /delete-chat-history', () => {
 
   it('redirects to /chat-history?deleted=true on successful delete', async () => {
     // stub CSRF fetch
-    stubClient.get
-      .withArgs('http://localhost:4550/csrf')
-      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.get.withArgs('http://localhost:4550/csrf').resolves({ data: { csrfToken: 'tok123' } });
     // stub DELETE call
     stubClient.delete
-      .withArgs('http://localhost:4550/chat/chats/123', sinon.match({
-        headers: { 'X-XSRF-TOKEN': 'tok123' },
-      }))
+      .withArgs(
+        'http://localhost:4550/chat/chats/123',
+        sinon.match({
+          headers: { 'X-XSRF-TOKEN': 'tok123' },
+        })
+      )
       .resolves({});
 
     const app = mkApp('SESSION=abc');
@@ -229,9 +221,7 @@ describe('GET /open-chat-history', () => {
 
     // fake axios client
     stubClient = { get: sinon.stub() };
-    wrapperStub = sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    wrapperStub = sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
@@ -263,20 +253,14 @@ describe('GET /open-chat-history', () => {
 
   it('returns 400 if chatId is missing', async () => {
     const app = mkApp('SESSION=abc');
-    await request(app)
-      .get('/open-chat-history')
-      .expect(400)
-      .expect('Missing chatId parameter.');
+    await request(app).get('/open-chat-history').expect(400).expect('Missing chatId parameter.');
     expect(ensureStub.calledOnce).to.be.true;
     expect(wrapperStub.notCalled).to.be.true;
   });
 
   it('returns 400 if chatId is not a number', async () => {
     const app = mkApp('SESSION=abc');
-    await request(app)
-      .get('/open-chat-history?chatId=foo')
-      .expect(400)
-      .expect('Invalid chatId parameter.');
+    await request(app).get('/open-chat-history?chatId=foo').expect(400).expect('Invalid chatId parameter.');
     expect(ensureStub.calledOnce).to.be.true;
     expect(wrapperStub.notCalled).to.be.true;
   });
@@ -296,15 +280,10 @@ describe('GET /open-chat-history', () => {
       { id: 1, text: 'hello' },
       { id: 2, text: 'world' },
     ];
-    stubClient.get
-      .withArgs('http://localhost:4550/chat/messages/123')
-      .resolves({ data: sampleMessages });
+    stubClient.get.withArgs('http://localhost:4550/chat/messages/123').resolves({ data: sampleMessages });
 
     const app = mkApp('SESSION=abc');
-    const res = await request(app)
-      .get('/open-chat-history?chatId=123')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/open-chat-history?chatId=123').expect(200).expect('Content-Type', /json/);
 
     expect(res.body).to.deep.equal({
       view: 'chat',
@@ -318,10 +297,7 @@ describe('GET /open-chat-history', () => {
     stubClient.get.rejects(new Error('network error'));
 
     const app = mkApp('SESSION=abc');
-    await request(app)
-      .get('/open-chat-history?chatId=456')
-      .expect(500)
-      .expect('Error retrieving chat history.');
+    await request(app).get('/open-chat-history?chatId=456').expect(500).expect('Error retrieving chat history.');
     expect(ensureStub.calledOnce).to.be.true;
     expect(wrapperStub.calledOnce).to.be.true;
   });

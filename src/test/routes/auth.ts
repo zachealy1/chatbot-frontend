@@ -6,7 +6,6 @@ import express, { Application } from 'express';
 import sinon from 'sinon';
 import request from 'supertest';
 
-
 describe('GET /login', () => {
   function mkApp() {
     const app: Application = express();
@@ -24,43 +23,34 @@ describe('GET /login', () => {
 
   it('renders login with no query params (defaults false)', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .get('/login')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/login').expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('login');
     expect(res.body.options).to.deep.equal({
       created: false,
-      passwordReset: false
+      passwordReset: false,
     });
   });
 
   it('sets created=true when ?created=true is provided', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .get('/login?created=true')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/login?created=true').expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('login');
     expect(res.body.options).to.deep.equal({
       created: true,
-      passwordReset: false
+      passwordReset: false,
     });
   });
 
   it('sets passwordReset=true when ?passwordReset=true is provided', async () => {
     const app = mkApp();
-    const res = await request(app)
-      .get('/login?passwordReset=true')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/login?passwordReset=true').expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('login');
     expect(res.body.options).to.deep.equal({
       created: false,
-      passwordReset: true
+      passwordReset: true,
     });
   });
 
@@ -74,7 +64,7 @@ describe('GET /login', () => {
     expect(res.body.view).to.equal('login');
     expect(res.body.options).to.deep.equal({
       created: true,
-      passwordReset: true
+      passwordReset: true,
     });
   });
 });
@@ -91,19 +81,19 @@ describe('POST /login', () => {
       get: sinon.stub(),
       post: sinon.stub(),
     };
-    sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
     sinon.restore();
   });
 
-  function mkApp(options: {
-    sessionProps?: any;
-    cookies?: Record<string,string>;
-  } = {}) {
+  function mkApp(
+    options: {
+      sessionProps?: any;
+      cookies?: Record<string, string>;
+    } = {}
+  ) {
     const { sessionProps = {}, cookies = {} } = options;
     const app: Application = express();
 
@@ -115,13 +105,19 @@ describe('POST /login', () => {
     app.use((req, _res, next) => {
       const sess: any = { ...sessionProps };
       sess.save = (cb: (err?: any) => void) => {
-        if (sessionProps.saveError) {cb(sessionProps.saveError);}
-        else {cb();}
+        if (sessionProps.saveError) {
+          cb(sessionProps.saveError);
+        } else {
+          cb();
+        }
       };
       (req as any).session = sess;
       (req as any).login = (user: any, cb: (err?: any) => void) => {
-        if (sessionProps.loginError) {cb(sessionProps.loginError);}
-        else {cb();}
+        if (sessionProps.loginError) {
+          cb(sessionProps.loginError);
+        } else {
+          cb();
+        }
       };
       next();
     });
@@ -150,9 +146,7 @@ describe('POST /login', () => {
   }
 
   it('redirects to /chat on successful login', async () => {
-    stubClient.get
-      .withArgs('/csrf')
-      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.get.withArgs('/csrf').resolves({ data: { csrfToken: 'tok123' } });
     stubClient.post
       .withArgs(
         '/login/chat',
@@ -178,10 +172,7 @@ describe('POST /login', () => {
       sessionProps: { saveError },
       cookies: { lang: 'cy' },
     });
-    const res = await request(app)
-      .post('/login')
-      .send({ username: 'bob', password: 'pw' })
-      .expect(200);
+    const res = await request(app).post('/login').send({ username: 'bob', password: 'pw' }).expect(200);
 
     expect(res.body.view).to.equal('login');
     expect(res.body.options).to.deep.equal({
@@ -197,10 +188,7 @@ describe('POST /login', () => {
     stubClient.post.rejects(backendErr);
 
     const app = mkApp();
-    const res = await request(app)
-      .post('/login')
-      .send({ username: 'carol', password: 'pw' })
-      .expect(200);
+    const res = await request(app).post('/login').send({ username: 'carol', password: 'pw' }).expect(200);
 
     expect(res.body.view).to.equal('login');
     expect(res.body.options).to.deep.equal({
@@ -216,10 +204,7 @@ describe('POST /login', () => {
     stubClient.post.rejects(genericErr);
 
     const app = mkApp();
-    const res = await request(app)
-      .post('/login')
-      .send({ username: 'dan', password: 'pw' })
-      .expect(200);
+    const res = await request(app).post('/login').send({ username: 'dan', password: 'pw' }).expect(200);
 
     expect(res.body.view).to.equal('login');
     expect(res.body.options).to.deep.equal({
@@ -252,17 +237,11 @@ describe('GET /logout', () => {
   it('responds 500 when logout errors', async () => {
     const err = new Error('oops');
     const app = mkApp(err);
-    await request(app)
-      .get('/logout')
-      .expect(500)
-      .expect('Failed to logout');
+    await request(app).get('/logout').expect(500).expect('Failed to logout');
   });
 
   it('redirects to /login on successful logout', async () => {
     const app = mkApp();
-    await request(app)
-      .get('/logout')
-      .expect(302)
-      .expect('Location', '/login');
+    await request(app).get('/logout').expect(302).expect('Location', '/login');
   });
 });

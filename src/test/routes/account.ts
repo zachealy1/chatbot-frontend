@@ -12,15 +12,11 @@ describe('GET /account', () => {
 
   beforeEach(() => {
     // Stub ensureAuthenticated so it always calls next()
-    sinon
-      .stub(authModule, 'ensureAuthenticated')
-      .callsFake((req, res, next) => next());
+    sinon.stub(authModule, 'ensureAuthenticated').callsFake((req, res, next) => next());
 
     // Stub axios-cookiejar-support.wrapper to return our fake client
     stubClient = { get: sinon.stub() };
-    sinon
-      .stub(axiosCookie, 'wrapper')
-      .returns(stubClient as any);
+    sinon.stub(axiosCookie, 'wrapper').returns(stubClient as any);
   });
 
   afterEach(() => {
@@ -35,56 +31,42 @@ describe('GET /account', () => {
 
     // Inject an empty session
     app.use((req, res, next) => {
-      ;(req as any).session = {};
+      (req as any).session = {};
       next();
     });
 
     // Stub out res.render so it just returns JSON
     app.use((req, res, next) => {
-      res.render = (view: string, options?: any) =>
-        res.json({ view, options });
+      res.render = (view: string, options?: any) => res.json({ view, options });
       next();
     });
 
     // Mount the real route under test
     accountRoutes(app);
 
-    const res = await request(app)
-      .get('/account')
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).get('/account').expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('account');
     expect(res.body.options).to.deep.equal({
       errors: ['Error retrieving account details.'],
-      updated: false
+      updated: false,
     });
   });
 
   it('fetches from backend and renders account when cookie is present', async () => {
     // Stub each backend call
-    stubClient.get
-      .withArgs('http://localhost:4550/account/username')
-      .resolves({ data: 'john' });
-    stubClient.get
-      .withArgs('http://localhost:4550/account/email')
-      .resolves({ data: 'john@example.com' });
-    stubClient.get
-      .withArgs('http://localhost:4550/account/date-of-birth/day')
-      .resolves({ data: '1' });
-    stubClient.get
-      .withArgs('http://localhost:4550/account/date-of-birth/month')
-      .resolves({ data: '2' });
-    stubClient.get
-      .withArgs('http://localhost:4550/account/date-of-birth/year')
-      .resolves({ data: '1990' });
+    stubClient.get.withArgs('http://localhost:4550/account/username').resolves({ data: 'john' });
+    stubClient.get.withArgs('http://localhost:4550/account/email').resolves({ data: 'john@example.com' });
+    stubClient.get.withArgs('http://localhost:4550/account/date-of-birth/day').resolves({ data: '1' });
+    stubClient.get.withArgs('http://localhost:4550/account/date-of-birth/month').resolves({ data: '2' });
+    stubClient.get.withArgs('http://localhost:4550/account/date-of-birth/year').resolves({ data: '1990' });
 
     const app: Application = express();
     app.use(express.urlencoded({ extended: false }));
 
     // Inject a session that *does* have our fake Spring cookie
     app.use((req, res, next) => {
-      ;(req as any).session = { springSessionCookie: 'SESSION=abc123' };
+      (req as any).session = { springSessionCookie: 'SESSION=abc123' };
       next();
     });
 
@@ -110,7 +92,7 @@ describe('GET /account', () => {
       month: '2',
       year: '1990',
       updated: true,
-      errors: null
+      errors: null,
     });
   });
 });
@@ -127,9 +109,7 @@ describe('POST /account/update', () => {
       get: sinon.stub(),
       post: sinon.stub(),
     };
-    sinon
-      .stub(axiosCookie, 'wrapper')
-      .callsFake(() => stubClient as any);
+    sinon.stub(axiosCookie, 'wrapper').callsFake(() => stubClient as any);
   });
 
   afterEach(() => {
@@ -185,11 +165,7 @@ describe('POST /account/update', () => {
 
     expect(res.body.view).to.equal('account');
     expect(res.body.options.lang).to.equal('en');
-    expect(res.body.options.fieldErrors).to.have.keys(
-      'username',
-      'email',
-      'dateOfBirth'
-    );
+    expect(res.body.options.fieldErrors).to.have.keys('username', 'email', 'dateOfBirth');
   });
 
   it('should flag confirmPassword when only password is provided', async () => {
@@ -203,18 +179,11 @@ describe('POST /account/update', () => {
       password: 'StrongP@ss1',
       confirmPassword: '',
     };
-    const res = await request(app)
-      .post('/account/update')
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/account/update').send(payload).expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('account');
     expect(res.body.options.lang).to.equal('en');
-    expect(res.body.options.fieldErrors).to.have.property(
-      'confirmPassword',
-      'confirmPasswordRequired'
-    );
+    expect(res.body.options.fieldErrors).to.have.property('confirmPassword', 'confirmPasswordRequired');
   });
 
   it('should 401 + re-render when session cookie is missing', async () => {
@@ -226,31 +195,18 @@ describe('POST /account/update', () => {
       'date-of-birth-month': '2',
       'date-of-birth-year': '1990',
     };
-    const res = await request(app)
-      .post('/account/update')
-      .send(payload)
-      .expect(401)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/account/update').send(payload).expect(401).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('account');
     expect(res.body.options.lang).to.equal('cy');
-    expect(res.body.options.fieldErrors).to.have.property(
-      'general',
-      'sessionExpired'
-    );
+    expect(res.body.options.fieldErrors).to.have.property('general', 'sessionExpired');
   });
 
   it('should redirect on successful backend update (lang=cy)', async () => {
     // stub CSRF fetch + update post
-    stubClient.get
-      .withArgs('/csrf')
-      .resolves({ data: { csrfToken: 'tok123' } });
+    stubClient.get.withArgs('/csrf').resolves({ data: { csrfToken: 'tok123' } });
     stubClient.post
-      .withArgs(
-        '/account/update',
-        sinon.match.object,
-        sinon.match({ headers: { 'X-XSRF-TOKEN': 'tok123' } })
-      )
+      .withArgs('/account/update', sinon.match.object, sinon.match({ headers: { 'X-XSRF-TOKEN': 'tok123' } }))
       .resolves({});
 
     // session must carry our springSessionCookie
@@ -271,12 +227,8 @@ describe('POST /account/update', () => {
   });
 
   it('should re-render with general error on backend failure', async () => {
-    stubClient.get
-      .withArgs('/csrf')
-      .resolves({ data: { csrfToken: 'tokXYZ' } });
-    stubClient.post
-      .withArgs('/account/update')
-      .rejects(new Error('boom'));
+    stubClient.get.withArgs('/csrf').resolves({ data: { csrfToken: 'tokXYZ' } });
+    stubClient.post.withArgs('/account/update').rejects(new Error('boom'));
 
     const app = mkApp({ springSessionCookie: 'S=2' }, {});
     const payload = {
@@ -287,18 +239,10 @@ describe('POST /account/update', () => {
       'date-of-birth-year': '1990',
     };
 
-    const res = await request(app)
-      .post('/account/update')
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/);
+    const res = await request(app).post('/account/update').send(payload).expect(200).expect('Content-Type', /json/);
 
     expect(res.body.view).to.equal('account');
     expect(res.body.options.lang).to.equal('en');
-    expect(res.body.options.fieldErrors).to.have.property(
-      'general',
-      'accountUpdateError'
-    );
+    expect(res.body.options.fieldErrors).to.have.property('general', 'accountUpdateError');
   });
 });
-

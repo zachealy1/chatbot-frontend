@@ -3,7 +3,6 @@ import { app } from '../../main/app';
 import { expect } from 'chai';
 import request from 'supertest';
 
-
 describe('Home Route', () => {
   describe('GET /', () => {
     it('should redirect (302) to /login', async () => {

@@ -38,12 +38,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-
 i18n.configure({
-  locales:        ['en', 'cy'],
-  directory:      path.join(__dirname, 'locales'),
-  defaultLocale:  'en',
-  cookie:         'lang',
+  locales: ['en', 'cy'],
+  directory: path.join(__dirname, 'locales'),
+  defaultLocale: 'en',
+  cookie: 'lang',
   queryParameter: 'lang',
 });
 app.use(i18n.init);
@@ -59,7 +58,7 @@ app.use((req, res, next) => {
     if (req.cookies.lang !== requestedLang) {
       res.cookie('lang', requestedLang, {
         httpOnly: true,
-        maxAge:   365 * 24 * 60 * 60 * 1000,
+        maxAge: 365 * 24 * 60 * 60 * 1000,
       });
     }
     req.setLocale(requestedLang);
